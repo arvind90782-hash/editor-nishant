@@ -75,6 +75,19 @@ if (themeToggle) {
   }
 }
 
+// Hero background video should autoplay silently without user controls.
+const heroBgVideo = document.querySelector('.hero-bg-video');
+if (heroBgVideo) {
+  heroBgVideo.muted = true;
+  heroBgVideo.playsInline = true;
+  heroBgVideo.setAttribute('muted', '');
+  heroBgVideo.setAttribute('playsinline', '');
+  heroBgVideo.setAttribute('webkit-playsinline', '');
+  heroBgVideo.play().catch(() => {
+    // If autoplay is blocked, the muted attribute keeps it eligible for retry.
+  });
+}
+
 // Form submission for mailto form
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
