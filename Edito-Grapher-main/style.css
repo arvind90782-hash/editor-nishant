@@ -529,6 +529,12 @@
       background: #050505;
     }
 
+    .video-card--full .portfolio-video,
+    .video-card--full video {
+      object-fit: contain;
+      background: #000;
+    }
+
     .video-card::after {
       content: "";
       position: absolute;
