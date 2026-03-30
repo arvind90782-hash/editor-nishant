@@ -83,9 +83,24 @@ if (heroBgVideo) {
   heroBgVideo.setAttribute('muted', '');
   heroBgVideo.setAttribute('playsinline', '');
   heroBgVideo.setAttribute('webkit-playsinline', '');
-  heroBgVideo.play().catch(() => {
-    // If autoplay is blocked, the muted attribute keeps it eligible for retry.
+
+  const startHeroPlayback = () => {
+    heroBgVideo.play().catch(() => {
+      // Autoplay can still be blocked by browser policy, but muted keeps it eligible.
+    });
+  };
+
+  heroBgVideo.addEventListener('canplay', startHeroPlayback, { once: true });
+  heroBgVideo.addEventListener('loadedmetadata', startHeroPlayback, { once: true });
+  heroBgVideo.addEventListener('error', () => {
+    if (heroBgVideo.dataset.fallbackApplied === 'true') return;
+    heroBgVideo.dataset.fallbackApplied = 'true';
+    heroBgVideo.src = 'Short videos/short 1.mp4';
+    heroBgVideo.load();
+    startHeroPlayback();
   });
+
+  startHeroPlayback();
 }
 
 // Form submission for mailto form
