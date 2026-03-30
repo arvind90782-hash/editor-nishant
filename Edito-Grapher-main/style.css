@@ -1,4 +1,6 @@
 :root {
+      --body-font: "Inter", "Space Grotesk", sans-serif;
+      --display-font: "Bebas Neue", sans-serif;
       --bg: #0d0d0d;
       --text: #ffffff;
       --accent: #00ffbf;
@@ -23,7 +25,7 @@
     }
 
     body {
-      font-family: "Inter", sans-serif;
+      font-family: var(--body-font);
       background: var(--bg);
       color: var(--text);
       transition: var(--transition);
@@ -53,7 +55,7 @@
     }
 
     .logo {
-      font-family: "Bebas Neue", sans-serif;
+      font-family: var(--display-font);
       letter-spacing: 1px;
       background: var(--gradient);
       background-clip: text;
@@ -80,7 +82,7 @@
 
     /* Gradient title styling for about page and other headings */
     .gradient-title {
-      font-family: "Bebas Neue", sans-serif;
+      font-family: var(--display-font);
       letter-spacing: 1px;
       background: var(--gradient);
       background-clip: text;
@@ -323,10 +325,12 @@
     .section-title {
       text-align: center;
       margin-bottom: 3rem;
-      font-size: 2.8rem;
-      font-family: "Bebas Neue";
+      font-size: clamp(2.3rem, 4vw, 4rem);
+      font-family: var(--display-font);
       color: var(--accent);
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      line-height: 0.95;
+      text-transform: uppercase;
     }
 
     /* About Page Title Alignment */
@@ -336,11 +340,13 @@
     }
 
     .about-header h1 {
-      font-family: "Bebas Neue";
-      font-size: 4rem;
+      font-family: var(--display-font);
+      font-size: clamp(3rem, 6vw, 5rem);
       color: var(--accent);
       margin-bottom: 1rem;
       letter-spacing: 2px;
+      line-height: 0.92;
+      text-transform: uppercase;
       text-align: left;
     }
 
@@ -414,12 +420,15 @@
     }
 
     .hero-container h2 {
-      font-family: "Bebas Neue";
-      font-size: 3.2rem;
-      margin-bottom: 1rem;
+      font-family: var(--display-font);
+      font-size: clamp(3rem, 6vw, 5rem);
+      margin-bottom: 0.75rem;
       background: var(--gradient);
       background-clip: text;
       -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+      line-height: 0.9;
+      text-transform: uppercase;
     }
 
     .hero-container p {
@@ -427,6 +436,7 @@
       margin: 0 auto;
       opacity: 0.9;
       font-size: 1.1rem;
+      font-family: var(--body-font);
     }
 
     .hero-container p span {
@@ -592,11 +602,14 @@
     }
 
     #sotware-i-use .tool p {
-      font-size: 1rem;
+      font-family: var(--display-font);
+      font-size: 1.25rem;
       font-weight: 600;
       text-align: center;
-      line-height: 1.35;
+      line-height: 0.95;
       color: var(--text);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
     }
 
     #sotware-i-use .tool:hover {
@@ -644,7 +657,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.05);
       color: var(--text);
-      font-family: "Inter", sans-serif;
+      font-family: var(--body-font);
       transition: var(--transition);
     }
 
@@ -666,10 +679,12 @@
     }
 
     .social-title {
-      font-family: "Bebas Neue";
+      font-family: var(--display-font);
       font-size: 2.2rem;
       color: var(--accent);
       margin-bottom: 1rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
     }
 
     .social-link {
@@ -811,19 +826,25 @@
     }
 
     .about-section h2 {
-      font-family: "Bebas Neue";
-      font-size: 2.5rem;
+      font-family: var(--display-font);
+      font-size: clamp(2.1rem, 4vw, 3rem);
       color: var(--accent);
       margin: 3rem 0 1.5rem;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      line-height: 0.95;
+      text-transform: uppercase;
       text-align: left;
     }
 
     .about-section h3 {
-      font-size: 1.5rem;
+      font-family: var(--display-font);
+      font-size: 1.65rem;
       color: var(--accent);
       margin: 2rem 0 1rem;
-      font-weight: 600;
+      font-weight: 400;
+      letter-spacing: 1px;
+      line-height: 0.95;
+      text-transform: uppercase;
       text-align: left;
     }
 
@@ -869,13 +890,17 @@
     }
 
     .service-card h4 {
+      font-family: var(--display-font);
       color: var(--accent);
-      font-size: 1.3rem;
+      font-size: 1.55rem;
       margin-bottom: 1rem;
       display: flex;
       align-items: center;
       gap: 10px;
       text-align: left;
+      letter-spacing: 1px;
+      line-height: 1;
+      text-transform: uppercase;
     }
 
     .service-icon {
@@ -895,10 +920,13 @@
     }
 
     .about-cta h3 {
-      font-family: "Bebas Neue";
-      font-size: 2.5rem;
+      font-family: var(--display-font);
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
       color: var(--accent);
       margin-bottom: 1.5rem;
+      letter-spacing: 1.5px;
+      line-height: 0.95;
+      text-transform: uppercase;
     }
 
     .about-cta p {
@@ -936,7 +964,7 @@
       }
       
       .about-header h1 {
-        font-size: 3.5rem;
+        font-size: clamp(2.8rem, 6vw, 4rem);
       }
     }
 
@@ -1063,11 +1091,11 @@
 
     @media (max-width: 768px) {
       .section-title {
-        font-size: 2.4rem;
+        font-size: clamp(2.15rem, 5vw, 3rem);
       }
       
       .about-header h1 {
-        font-size: 3rem;
+        font-size: clamp(2.6rem, 8vw, 3.4rem);
         text-align: left;
       }
       
@@ -1119,19 +1147,19 @@
 
     @media (max-width: 576px) {
       .hero-container h2 {
-        font-size: 2.8rem;
+        font-size: clamp(2.7rem, 10vw, 3.4rem);
       }
       
       .section-title {
-        font-size: 2rem;
+        font-size: clamp(1.95rem, 7vw, 2.5rem);
       }
       
       .about-header h1 {
-        font-size: 2.5rem;
+        font-size: clamp(2.3rem, 10vw, 3rem);
       }
       
       .about-section h2 {
-        font-size: 2rem;
+        font-size: clamp(1.9rem, 7vw, 2.3rem);
         text-align: left;
       }
       
