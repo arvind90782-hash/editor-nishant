@@ -92,13 +92,6 @@ if (heroBgVideo) {
 
   heroBgVideo.addEventListener('canplay', startHeroPlayback, { once: true });
   heroBgVideo.addEventListener('loadedmetadata', startHeroPlayback, { once: true });
-  heroBgVideo.addEventListener('error', () => {
-    if (heroBgVideo.dataset.fallbackApplied === 'true') return;
-    heroBgVideo.dataset.fallbackApplied = 'true';
-    heroBgVideo.src = 'Short videos/short 1.mp4';
-    heroBgVideo.load();
-    startHeroPlayback();
-  });
 
   startHeroPlayback();
 }
