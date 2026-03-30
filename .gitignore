@@ -1,0 +1,11 @@
+node_modules/
+package-lock.json
+.DS_Store
+*.mp4
+*.webm
+*.mov
+.env
+.idea/
+.vscode/
+dist/
+build/

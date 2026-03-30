@@ -1,0 +1,14 @@
+{
+  "name": "edito-grapher",
+  "version": "1.0.0",
+  "description": "A web application",
+  "main": "index.html",
+  "scripts": {
+    "dev": "http-server Edito-Grapher-main -c-1 -o -p 8080",
+    "build": "echo 'No build process needed for static site'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
