@@ -477,46 +477,57 @@
       }
     }
 
-    /* Video Section - Centered */
-    #videos .gallery, #full-videos .gallery{
+    /* Video Grids */
+    .video-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      justify-content: center;
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 30px;
       margin-top: 2rem;
+      align-items: stretch;
     }
 
-    #full-videos .video {
-      max-width: 300px;
+    #full-videos .video-grid {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }
 
-    .video {
+    .video-card {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      overflow: hidden;
       border-radius: 20px;
-      box-shadow: var(--shadow);
-      transition: var(--transition);
-      max-width: 270px;
+      background: #080808;
+      box-shadow: 0 0 30px rgba(0, 255, 200, 0.25);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
       cursor: pointer;
     }
 
-
-    .video:hover {
-      transform: scale(1.03);
-      box-shadow: 0 10px 30px rgba(0, 255, 191, 0.3);
+    #full-videos .video-card {
+      max-width: 100%;
     }
 
-    .video video {
-      height: 100%;
+    .video-card:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 40px rgba(0, 255, 200, 0.38);
+    }
+
+    .portfolio-video,
+    .video-card video {
       width: 100%;
+      height: 100%;
       object-fit: cover;
+      display: block;
       border-radius: 20px;
+      background: #050505;
     }
 
-    /* Thumbnail Section */
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
+    .video-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      border: 1px solid rgba(0, 255, 191, 0.08);
+      pointer-events: none;
     }
 
     /* Testimonials Section - Redesigned */
@@ -1144,14 +1155,10 @@
         justify-items: center;
       }
 
-      #full-videos .video {
+      #full-videos .video-card {
         width: 100%;
-        max-width: 300px;
+        max-width: 320px;
         margin: 0 auto;
-      }
-      
-      .video {
-        max-width: 220px;
       }
       
       .logo {
@@ -1245,10 +1252,6 @@
         margin: 0 0.4rem 0 0;
         padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
-      }
-
-      .video {
-        max-width: 100%;
       }
 
       #full-videos .gallery {

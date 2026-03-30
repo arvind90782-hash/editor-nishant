@@ -96,6 +96,84 @@ if (heroBgVideo) {
   startHeroPlayback();
 }
 
+// Lazy-load and autoplay portfolio videos only when they are visible.
+const portfolioVideos = Array.from(document.querySelectorAll('.portfolio-video'));
+if (portfolioVideos.length) {
+  const primeVideo = (video) => {
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.preload = 'metadata';
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+  };
+
+  const loadVideo = (video) => {
+    if (video.dataset.loaded === 'true') return;
+    const source = video.querySelector('source[data-src]');
+    if (!source || !source.dataset.src) return;
+
+    source.src = source.dataset.src;
+    source.removeAttribute('data-src');
+    video.load();
+    video.dataset.loaded = 'true';
+  };
+
+  const playVideo = (video) => {
+    loadVideo(video);
+    if (video.readyState >= 2) {
+      video.play().catch(() => {});
+      return;
+    }
+
+    video.addEventListener(
+      'loadeddata',
+      () => {
+        video.play().catch(() => {});
+      },
+      { once: true }
+    );
+  };
+
+  const pauseVideo = (video) => {
+    if (!video.paused) {
+      video.pause();
+    }
+  };
+
+  portfolioVideos.forEach(primeVideo);
+
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            playVideo(entry.target);
+          } else {
+            pauseVideo(entry.target);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: '120px 0px',
+        threshold: 0.35,
+      }
+    );
+
+    portfolioVideos.forEach(video => observer.observe(video));
+  } else {
+    portfolioVideos.forEach(playVideo);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      portfolioVideos.forEach(pauseVideo);
+    }
+  });
+}
+
 // Form submission for mailto form
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
