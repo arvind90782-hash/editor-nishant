@@ -75,7 +75,7 @@ if (themeToggle) {
   }
 }
 
-// Hero background video should autoplay silently without user controls.
+// Keep the hero background video playing silently in the background.
 const heroBgVideo = document.querySelector('.hero-bg-video');
 if (heroBgVideo) {
   heroBgVideo.muted = true;
@@ -96,15 +96,12 @@ if (heroBgVideo) {
   startHeroPlayback();
 }
 
-// Lazy-load and autoplay portfolio videos only when they are visible.
+// Lazy-load portfolio video sources when they enter the viewport.
 const portfolioVideos = Array.from(document.querySelectorAll('.portfolio-video'));
 if (portfolioVideos.length) {
   const primeVideo = (video) => {
-    video.muted = true;
-    video.loop = true;
     video.playsInline = true;
     video.preload = 'metadata';
-    video.setAttribute('muted', '');
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
   };
@@ -120,28 +117,6 @@ if (portfolioVideos.length) {
     video.dataset.loaded = 'true';
   };
 
-  const playVideo = (video) => {
-    loadVideo(video);
-    if (video.readyState >= 2) {
-      video.play().catch(() => {});
-      return;
-    }
-
-    video.addEventListener(
-      'loadeddata',
-      () => {
-        video.play().catch(() => {});
-      },
-      { once: true }
-    );
-  };
-
-  const pauseVideo = (video) => {
-    if (!video.paused) {
-      video.pause();
-    }
-  };
-
   portfolioVideos.forEach(primeVideo);
 
   if ('IntersectionObserver' in window) {
@@ -149,9 +124,7 @@ if (portfolioVideos.length) {
       entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            playVideo(entry.target);
-          } else {
-            pauseVideo(entry.target);
+            loadVideo(entry.target);
           }
         });
       },
@@ -164,14 +137,8 @@ if (portfolioVideos.length) {
 
     portfolioVideos.forEach(video => observer.observe(video));
   } else {
-    portfolioVideos.forEach(playVideo);
+    portfolioVideos.forEach(loadVideo);
   }
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      portfolioVideos.forEach(pauseVideo);
-    }
-  });
 }
 
 // Form submission for mailto form
@@ -237,7 +204,7 @@ function updateLightbox() {
   
   if (isVideo) {
     lightboxContent.innerHTML = `
-      <video controls style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
+      <video controls preload="metadata" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
         <source src="${item.dataset.src}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
@@ -245,16 +212,6 @@ function updateLightbox() {
     
     // Store reference to current video
     currentVideo = lightboxContent.querySelector('video');
-    currentVideo.addEventListener('play', function() {
-      currentVideo = this;
-    });
-    
-    // Auto play video
-    setTimeout(() => {
-      if (currentVideo) {
-        currentVideo.play().catch(e => console.log('Autoplay prevented:', e));
-      }
-    }, 300);
   } else {
     lightboxContent.innerHTML = `
       <img src="${item.dataset.src}" alt="Lightbox Image" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
