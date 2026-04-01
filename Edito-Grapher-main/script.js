@@ -101,20 +101,45 @@ const portfolioVideos = Array.from(document.querySelectorAll('.portfolio-video')
 if (portfolioVideos.length) {
   const primeVideo = (video) => {
     video.playsInline = true;
+    video.muted = true;
+    video.loop = true;
+    video.autoplay = true;
     video.preload = 'metadata';
+    video.setAttribute('muted', '');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('loop', '');
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
   };
 
   const loadVideo = (video) => {
-    if (video.dataset.loaded === 'true') return;
+    const startPreview = () => {
+      video.play().catch(() => {
+        // Browsers may still reject autoplay on some devices; the poster remains as fallback.
+      });
+    };
+
+    if (video.dataset.loaded === 'true') {
+      if (video.paused) {
+        startPreview();
+      }
+      return;
+    }
+
     const source = video.querySelector('source[data-src]');
     if (!source || !source.dataset.src) return;
 
+    primeVideo(video);
     source.src = source.dataset.src;
     source.removeAttribute('data-src');
     video.load();
     video.dataset.loaded = 'true';
+
+    if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      startPreview();
+    } else {
+      video.addEventListener('canplay', startPreview, { once: true });
+    }
   };
 
   portfolioVideos.forEach(primeVideo);
@@ -125,6 +150,8 @@ if (portfolioVideos.length) {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             loadVideo(entry.target);
+          } else if (!entry.target.paused) {
+            entry.target.pause();
           }
         });
       },
@@ -204,7 +231,7 @@ function updateLightbox() {
   
   if (isVideo) {
     lightboxContent.innerHTML = `
-      <video controls preload="metadata" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
+      <video controls autoplay playsinline preload="metadata" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
         <source src="${item.dataset.src}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
@@ -212,6 +239,13 @@ function updateLightbox() {
     
     // Store reference to current video
     currentVideo = lightboxContent.querySelector('video');
+    if (currentVideo) {
+      currentVideo.playsInline = true;
+      currentVideo.autoplay = true;
+      currentVideo.play().catch(() => {
+        // If autoplay is blocked, the user still has the native controls.
+      });
+    }
   } else {
     lightboxContent.innerHTML = `
       <img src="${item.dataset.src}" alt="Lightbox Image" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
