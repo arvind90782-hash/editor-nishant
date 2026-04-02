@@ -75,7 +75,7 @@ if (themeToggle) {
   }
 }
 
-// Keep the hero background video ready without autoplay or mute.
+// Keep the hero background video ready autoplay without actually autoplaying or muting it, so it can start immediately when the user interacts with the page.
 const heroBgVideo = document.querySelector('.hero-bg-video');
 if (heroBgVideo) {
   heroBgVideo.playsInline = true;
@@ -225,14 +225,12 @@ function updateLightbox() {
     if (currentVideo) {
       const activeVideo = currentVideo;
       activeVideo.playsInline = true;
-      activeVideo.autoplay = false;
+      activeVideo.autoplay = true;
       activeVideo.muted = false;
       activeVideo.defaultMuted = false;
       activeVideo.preload = 'metadata';
-      activeVideo.setAttribute('playsinline', '');
-      activeVideo.removeAttribute('autoplay');
-      activeVideo.removeAttribute('muted');
-      activeVideo.load();
+
+      activeVideo.play().catch(() => {});
     }
   } else {
     lightboxContent.innerHTML = `

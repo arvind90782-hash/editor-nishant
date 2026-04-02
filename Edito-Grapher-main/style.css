@@ -529,20 +529,20 @@
       background: #050505;
     }
 
-    .video-card--full .portfolio-video,
-    .video-card--full video {
-      object-fit: contain;
-      background: #000;
-    }
+/* Full video ratio fix (YouTube videos) */
 
-    .video-card::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 20px;
-      border: 1px solid rgba(0, 255, 191, 0.08);
-      pointer-events: none;
-    }
+.video-card--full{
+  width:100%;
+  aspect-ratio:16/9;
+  overflow:hidden;
+}
+
+.video-card--full .portfolio-video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
 
     /* Testimonials Section - Redesigned */
     .testimonials {
