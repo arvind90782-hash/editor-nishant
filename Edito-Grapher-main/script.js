@@ -104,7 +104,7 @@ if (portfolioVideos.length) {
     video.muted = true;
     video.loop = true;
     video.autoplay = true;
-    video.preload = 'metadata';
+    video.preload = 'auto';
     video.setAttribute('muted', '');
     video.setAttribute('autoplay', '');
     video.setAttribute('loop', '');
@@ -166,6 +166,17 @@ if (portfolioVideos.length) {
   } else {
     portfolioVideos.forEach(loadVideo);
   }
+
+  // Load any videos that are already on screen so the first visible cards
+  // do not depend on the observer firing later.
+  requestAnimationFrame(() => {
+    portfolioVideos.forEach(video => {
+      const rect = video.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 120 && rect.bottom > -120) {
+        loadVideo(video);
+      }
+    });
+  });
 }
 
 // Form submission for mailto form
@@ -231,7 +242,7 @@ function updateLightbox() {
   
   if (isVideo) {
     lightboxContent.innerHTML = `
-      <video controls autoplay playsinline preload="metadata" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
+      <video controls autoplay muted playsinline preload="auto" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
         <source src="${item.dataset.src}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
@@ -240,9 +251,27 @@ function updateLightbox() {
     // Store reference to current video
     currentVideo = lightboxContent.querySelector('video');
     if (currentVideo) {
-      currentVideo.playsInline = true;
-      currentVideo.autoplay = true;
-      currentVideo.play().catch(() => {
+      const activeVideo = currentVideo;
+      activeVideo.muted = true;
+      activeVideo.defaultMuted = true;
+      activeVideo.playsInline = true;
+      activeVideo.autoplay = true;
+      activeVideo.preload = 'auto';
+      activeVideo.setAttribute('muted', '');
+      activeVideo.setAttribute('autoplay', '');
+      activeVideo.setAttribute('playsinline', '');
+      activeVideo.addEventListener('loadedmetadata', () => {
+        activeVideo.play().catch(() => {
+          // If autoplay is still blocked, native controls remain available.
+        });
+      }, { once: true });
+      activeVideo.addEventListener('canplay', () => {
+        activeVideo.play().catch(() => {
+          // If autoplay is still blocked, native controls remain available.
+        });
+      }, { once: true });
+      activeVideo.load();
+      activeVideo.play().catch(() => {
         // If autoplay is blocked, the user still has the native controls.
       });
     }
