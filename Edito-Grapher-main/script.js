@@ -96,7 +96,7 @@ if (heroBgVideo) {
   startHeroPlayback();
 }
 
-// Lazy-load portfolio video sources when they enter the viewport.
+// Prepare portfolio sources up front, then autoplay only the cards that are visible.
 const portfolioVideos = Array.from(document.querySelectorAll('.portfolio-video'));
 if (portfolioVideos.length) {
   const primeVideo = (video) => {
@@ -112,17 +112,8 @@ if (portfolioVideos.length) {
     video.setAttribute('webkit-playsinline', '');
   };
 
-  const loadVideo = (video) => {
-    const startPreview = () => {
-      video.play().catch(() => {
-        // Browsers may still reject autoplay on some devices; the poster remains as fallback.
-      });
-    };
-
+  const prepareVideo = (video) => {
     if (video.dataset.loaded === 'true') {
-      if (video.paused) {
-        startPreview();
-      }
       return;
     }
 
@@ -134,22 +125,33 @@ if (portfolioVideos.length) {
     source.removeAttribute('data-src');
     video.load();
     video.dataset.loaded = 'true';
+  };
 
+  const playVideo = (video) => {
+    if (!video || video.error) return;
+    video.play().catch(() => {
+      // Browsers may still reject autoplay on some devices; the poster remains as fallback.
+    });
+  };
+
+  const prepareAndPlay = (video) => {
+    prepareVideo(video);
     if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-      startPreview();
+      playVideo(video);
     } else {
-      video.addEventListener('canplay', startPreview, { once: true });
+      video.addEventListener('canplay', () => playVideo(video), { once: true });
     }
   };
 
   portfolioVideos.forEach(primeVideo);
+  portfolioVideos.forEach(prepareVideo);
 
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            loadVideo(entry.target);
+            prepareAndPlay(entry.target);
           } else if (!entry.target.paused) {
             entry.target.pause();
           }
@@ -164,7 +166,7 @@ if (portfolioVideos.length) {
 
     portfolioVideos.forEach(video => observer.observe(video));
   } else {
-    portfolioVideos.forEach(loadVideo);
+    portfolioVideos.forEach(prepareAndPlay);
   }
 
   // Load any videos that are already on screen so the first visible cards
@@ -173,7 +175,7 @@ if (portfolioVideos.length) {
     portfolioVideos.forEach(video => {
       const rect = video.getBoundingClientRect();
       if (rect.top < window.innerHeight + 120 && rect.bottom > -120) {
-        loadVideo(video);
+        prepareAndPlay(video);
       }
     });
   });
@@ -260,6 +262,7 @@ function updateLightbox() {
       activeVideo.setAttribute('muted', '');
       activeVideo.setAttribute('autoplay', '');
       activeVideo.setAttribute('playsinline', '');
+      activeVideo.setAttribute('preload', 'auto');
       activeVideo.addEventListener('loadedmetadata', () => {
         activeVideo.play().catch(() => {
           // If autoplay is still blocked, native controls remain available.
