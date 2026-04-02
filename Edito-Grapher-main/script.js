@@ -75,41 +75,29 @@ if (themeToggle) {
   }
 }
 
-// Keep the hero background video playing silently in the background.
+// Keep the hero background video ready without autoplay or mute.
 const heroBgVideo = document.querySelector('.hero-bg-video');
 if (heroBgVideo) {
-  heroBgVideo.muted = true;
   heroBgVideo.playsInline = true;
-  heroBgVideo.setAttribute('muted', '');
   heroBgVideo.setAttribute('playsinline', '');
   heroBgVideo.setAttribute('webkit-playsinline', '');
-
-  const startHeroPlayback = () => {
-    heroBgVideo.play().catch(() => {
-      // Autoplay can still be blocked by browser policy, but muted keeps it eligible.
-    });
-  };
-
-  heroBgVideo.addEventListener('canplay', startHeroPlayback, { once: true });
-  heroBgVideo.addEventListener('loadedmetadata', startHeroPlayback, { once: true });
-
-  startHeroPlayback();
+  heroBgVideo.preload = 'metadata';
+  heroBgVideo.removeAttribute('autoplay');
+  heroBgVideo.removeAttribute('muted');
 }
 
-// Prepare portfolio sources up front, then autoplay only the cards that are visible.
+// Prepare portfolio sources up front without autoplay or mute.
 const portfolioVideos = Array.from(document.querySelectorAll('.portfolio-video'));
 if (portfolioVideos.length) {
   const primeVideo = (video) => {
     video.playsInline = true;
-    video.muted = true;
     video.loop = true;
-    video.autoplay = true;
-    video.preload = 'auto';
-    video.setAttribute('muted', '');
-    video.setAttribute('autoplay', '');
+    video.preload = 'metadata';
     video.setAttribute('loop', '');
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
+    video.removeAttribute('autoplay');
+    video.removeAttribute('muted');
   };
 
   const prepareVideo = (video) => {
@@ -127,22 +115,6 @@ if (portfolioVideos.length) {
     video.dataset.loaded = 'true';
   };
 
-  const playVideo = (video) => {
-    if (!video || video.error) return;
-    video.play().catch(() => {
-      // Browsers may still reject autoplay on some devices; the poster remains as fallback.
-    });
-  };
-
-  const prepareAndPlay = (video) => {
-    prepareVideo(video);
-    if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-      playVideo(video);
-    } else {
-      video.addEventListener('canplay', () => playVideo(video), { once: true });
-    }
-  };
-
   portfolioVideos.forEach(primeVideo);
   portfolioVideos.forEach(prepareVideo);
 
@@ -151,9 +123,7 @@ if (portfolioVideos.length) {
       entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            prepareAndPlay(entry.target);
-          } else if (!entry.target.paused) {
-            entry.target.pause();
+            prepareVideo(entry.target);
           }
         });
       },
@@ -166,7 +136,7 @@ if (portfolioVideos.length) {
 
     portfolioVideos.forEach(video => observer.observe(video));
   } else {
-    portfolioVideos.forEach(prepareAndPlay);
+    portfolioVideos.forEach(prepareVideo);
   }
 
   // Load any videos that are already on screen so the first visible cards
@@ -175,7 +145,7 @@ if (portfolioVideos.length) {
     portfolioVideos.forEach(video => {
       const rect = video.getBoundingClientRect();
       if (rect.top < window.innerHeight + 120 && rect.bottom > -120) {
-        prepareAndPlay(video);
+        prepareVideo(video);
       }
     });
   });
@@ -244,7 +214,7 @@ function updateLightbox() {
   
   if (isVideo) {
     lightboxContent.innerHTML = `
-      <video controls autoplay muted playsinline preload="auto" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
+      <video controls playsinline preload="metadata" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
         <source src="${item.dataset.src}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
@@ -254,29 +224,15 @@ function updateLightbox() {
     currentVideo = lightboxContent.querySelector('video');
     if (currentVideo) {
       const activeVideo = currentVideo;
-      activeVideo.muted = true;
-      activeVideo.defaultMuted = true;
       activeVideo.playsInline = true;
-      activeVideo.autoplay = true;
-      activeVideo.preload = 'auto';
-      activeVideo.setAttribute('muted', '');
-      activeVideo.setAttribute('autoplay', '');
+      activeVideo.autoplay = false;
+      activeVideo.muted = false;
+      activeVideo.defaultMuted = false;
+      activeVideo.preload = 'metadata';
       activeVideo.setAttribute('playsinline', '');
-      activeVideo.setAttribute('preload', 'auto');
-      activeVideo.addEventListener('loadedmetadata', () => {
-        activeVideo.play().catch(() => {
-          // If autoplay is still blocked, native controls remain available.
-        });
-      }, { once: true });
-      activeVideo.addEventListener('canplay', () => {
-        activeVideo.play().catch(() => {
-          // If autoplay is still blocked, native controls remain available.
-        });
-      }, { once: true });
+      activeVideo.removeAttribute('autoplay');
+      activeVideo.removeAttribute('muted');
       activeVideo.load();
-      activeVideo.play().catch(() => {
-        // If autoplay is blocked, the user still has the native controls.
-      });
     }
   } else {
     lightboxContent.innerHTML = `
