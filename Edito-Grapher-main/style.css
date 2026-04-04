@@ -1466,6 +1466,10 @@
     }
 
     @media (max-width: 768px) {
+      .section {
+        padding: 3rem 0;
+      }
+
       .section-title {
         font-size: 2.4rem;
       }
@@ -1477,6 +1481,94 @@
       
       .about-header p {
         text-align: left;
+      }
+
+      #videos .gallery,
+      #full-videos .gallery,
+      .project-gallery,
+      .testimonials {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.9rem;
+        margin-top: 1.25rem;
+      }
+
+      .video {
+        width: 100%;
+        max-width: none;
+      }
+
+      .video video {
+        height: 180px;
+        border-radius: 16px;
+      }
+
+      #full-videos .video {
+        width: 100%;
+        max-width: none;
+      }
+
+      .project-card {
+        padding: 1rem;
+        border-radius: 18px;
+      }
+
+      .project-card-image {
+        height: 110px;
+        margin-bottom: 0.9rem;
+      }
+
+      .project-card h3 {
+        font-size: 1.05rem;
+        margin-bottom: 0.45rem;
+      }
+
+      .project-card p {
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin-bottom: 0.85rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .project-link {
+        font-size: 0.82rem;
+      }
+
+      .testimonial-card {
+        padding: 1rem;
+        border-radius: 14px;
+      }
+
+      .author-avatar {
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .testimonial-text {
+        font-size: 0.82rem;
+        line-height: 1.45;
+        margin: 1.1rem 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .testimonial-text::before {
+        top: -2.2rem;
+        font-size: 2.3rem;
+      }
+
+      .author-name {
+        font-size: 0.92rem;
+      }
+
+      .author-role {
+        font-size: 0.78rem;
       }
       
       #videos .gallery {
@@ -1522,6 +1614,10 @@
     }
 
     @media (max-width: 576px) {
+      .section {
+        padding: 2.5rem 0;
+      }
+
       .hero-container h2 {
         font-size: 2.8rem;
       }
@@ -1539,8 +1635,89 @@
         text-align: left;
       }
       
+      #videos .gallery,
+      #full-videos .gallery,
+      .project-gallery,
+      .testimonials {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      .video {
+        width: 100%;
+        max-width: none;
+      }
+
+      .video video {
+        height: 165px;
+        border-radius: 14px;
+      }
+
+      #full-videos .video {
+        width: 100%;
+        max-width: none;
+      }
+
+      .project-card {
+        padding: 0.85rem;
+        border-radius: 16px;
+      }
+
+      .project-card-image {
+        height: 96px;
+        margin-bottom: 0.75rem;
+      }
+
+      .project-card h3 {
+        font-size: 0.95rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .project-card p {
+        font-size: 0.76rem;
+        line-height: 1.35;
+        margin-bottom: 0.65rem;
+        -webkit-line-clamp: 2;
+      }
+
+      .project-link {
+        font-size: 0.78rem;
+      }
+
+      .testimonial-card {
+        padding: 0.85rem;
+        border-radius: 12px;
+      }
+
+      .author-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+        margin-bottom: 0.85rem;
+      }
+
+      .testimonial-text {
+        font-size: 0.76rem;
+        line-height: 1.35;
+        margin: 0.9rem 0;
+        -webkit-line-clamp: 4;
+      }
+
+      .testimonial-text::before {
+        top: -2rem;
+        font-size: 2rem;
+      }
+
+      .author-name {
+        font-size: 0.86rem;
+      }
+
+      .author-role {
+        font-size: 0.74rem;
+      }
+
       .gallery {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       
       .lightbox-prev,
@@ -1554,10 +1731,6 @@
         width: 40px;
         height: 40px;
         font-size: 1.5rem;
-      }
-      
-      .testimonials {
-        grid-template-columns: 1fr;
       }
       
       .logo {
@@ -1574,10 +1747,6 @@
         margin: 0 0.4rem 0 0;
         padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
-      }
-
-      .video {
-        max-width: 100%;
       }
 
       #full-videos .gallery {
