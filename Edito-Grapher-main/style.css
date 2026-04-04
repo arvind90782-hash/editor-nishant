@@ -1507,6 +1507,13 @@
       #full-videos .video {
         width: 100%;
         max-width: none;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+      }
+
+      #full-videos .video video {
+        height: 100%;
+        border-radius: 0;
       }
 
       .project-card {
@@ -1660,6 +1667,13 @@
       #full-videos .video {
         width: 100%;
         max-width: none;
+        overflow: hidden;
+        aspect-ratio: 16 / 9;
+      }
+
+      #full-videos .video video {
+        height: 100%;
+        border-radius: 0;
       }
 
       .project-card {
