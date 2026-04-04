@@ -1,8 +1,6 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": "Edito-Grapher-main",
   "functions": {
-    "api/**/*.js": {
+    "api/*.js": {
       "runtime": "nodejs20.x"
     }
   }
