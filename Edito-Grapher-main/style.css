@@ -1495,11 +1495,13 @@
       .video {
         width: 100%;
         max-width: none;
+        overflow: hidden;
+        aspect-ratio: 9 / 16;
       }
 
       .video video {
-        height: 180px;
-        border-radius: 16px;
+        height: 100%;
+        border-radius: 0;
       }
 
       #full-videos .video {
@@ -1646,11 +1648,13 @@
       .video {
         width: 100%;
         max-width: none;
+        overflow: hidden;
+        aspect-ratio: 9 / 16;
       }
 
       .video video {
-        height: 165px;
-        border-radius: 14px;
+        height: 100%;
+        border-radius: 0;
       }
 
       #full-videos .video {
