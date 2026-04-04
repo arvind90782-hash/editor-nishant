@@ -75,106 +75,423 @@ if (themeToggle) {
   }
 }
 
-// Keep the hero background video ready autoplay without actually autoplaying or muting it, so it can start immediately when the user interacts with the page.
-const heroBgVideo = document.querySelector('.hero-bg-video');
-if (heroBgVideo) {
-  heroBgVideo.playsInline = true;
-  heroBgVideo.setAttribute('playsinline', '');
-  heroBgVideo.setAttribute('webkit-playsinline', '');
-  heroBgVideo.preload = 'metadata';
-  heroBgVideo.removeAttribute('autoplay');
-  heroBgVideo.removeAttribute('muted');
-}
+// Background contact form submission
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+  const contactSubmit = contactForm.querySelector('[data-contact-submit]');
+  const contactStatus = document.getElementById('contactStatus');
+  const submittedAtField = contactForm.querySelector('input[name="submittedAt"]');
+  const contactDefaultHtml = contactSubmit ? contactSubmit.innerHTML : 'Send Project Request 🚀';
+  const contactSelectControllers = [];
 
-// Prepare portfolio sources up front without autoplay or mute.
-const portfolioVideos = Array.from(document.querySelectorAll('.portfolio-video'));
-if (portfolioVideos.length) {
-  const primeVideo = (video) => {
-    video.playsInline = true;
-    video.loop = true;
-    video.preload = 'metadata';
-    video.setAttribute('loop', '');
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-    video.removeAttribute('autoplay');
-    video.removeAttribute('muted');
-  };
+  function setContactStatus(message, type = '') {
+    if (!contactStatus) return;
 
-  const prepareVideo = (video) => {
-    if (video.dataset.loaded === 'true') {
+    contactStatus.textContent = message;
+    contactStatus.classList.remove('success', 'error');
+
+    if (type) {
+      contactStatus.classList.add(type);
+    }
+  }
+
+  function setContactLoading(isLoading) {
+    if (!contactSubmit) return;
+
+    contactSubmit.disabled = isLoading;
+    contactSubmit.setAttribute('aria-busy', String(isLoading));
+    contactSubmit.classList.toggle('is-loading', isLoading);
+    contactSubmit.innerHTML = isLoading
+      ? '<span class="button-spinner" aria-hidden="true"></span><span>Opening...</span>'
+      : contactDefaultHtml;
+  }
+
+  function refreshSubmittedAt() {
+    if (submittedAtField) {
+      submittedAtField.value = Date.now().toString();
+    }
+  }
+
+  function normalizeSingleLine(value, maxLength = 120) {
+    return String(value ?? '')
+      .normalize('NFKC')
+      .replace(/\u0000/g, '')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, maxLength);
+  }
+
+  function normalizeMultiline(value, maxLength = 2000) {
+    return String(value ?? '')
+      .normalize('NFKC')
+      .replace(/\u0000/g, '')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .trim()
+      .slice(0, maxLength);
+  }
+
+  function buildContactMessage(data) {
+    const reference = data.reference || 'N/A';
+
+    return [
+      '🚀 NEW CLIENT INQUIRY',
+      '',
+      'Client Details',
+      `Name: ${data.name}`,
+      `Email: ${data.email}`,
+      `Phone: ${data.phone}`,
+      '',
+      'Project Information',
+      `Project Title: ${data.projectTitle}`,
+      `Service Required: ${data.service}`,
+      '',
+      'Project Description',
+      data.description,
+      '',
+      'Reference (Optional)',
+      reference,
+      '',
+      'Source',
+      'Portfolio Website',
+    ].join('\n');
+  }
+
+  function buildRedirectUrl(contactMethod, message) {
+    const encodedMessage = encodeURIComponent(message);
+
+    if (contactMethod === 'whatsapp') {
+      return `https://wa.me/9277072409?text=${encodedMessage}`;
+    }
+
+    if (contactMethod === 'gmail') {
+      const subject = encodeURIComponent('New Client Inquiry – Portfolio Website');
+      return `https://mail.google.com/mail/?view=cm&fs=1&to=arvind90782@gmail.com&su=${subject}&body=${encodedMessage}`;
+    }
+
+    return '';
+  }
+
+  refreshSubmittedAt();
+
+  contactForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    if (!this.reportValidity()) {
       return;
     }
 
-    const source = video.querySelector('source[data-src]');
-    if (!source || !source.dataset.src) return;
+    if (!validateContactSelects()) {
+      return;
+    }
 
-    primeVideo(video);
-    source.src = source.dataset.src;
-    source.removeAttribute('data-src');
-    video.load();
-    video.dataset.loaded = 'true';
-  };
+    setContactStatus('');
+    setContactLoading(true);
 
-  portfolioVideos.forEach(primeVideo);
-  portfolioVideos.forEach(prepareVideo);
+    try {
+      const formData = new FormData(this);
+      const payload = Object.fromEntries(formData.entries());
 
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            prepareVideo(entry.target);
-          }
-        });
-      },
-      {
-        root: null,
-        rootMargin: '120px 0px',
-        threshold: 0.35,
+      const name = normalizeSingleLine(payload.name, 80);
+      const email = normalizeSingleLine(payload.email, 120).toLowerCase();
+      const phone = normalizeSingleLine(payload.phone, 30);
+      const projectTitle = normalizeSingleLine(payload.projectTitle, 120);
+      const service = normalizeSingleLine(payload.service, 60);
+      const description = normalizeMultiline(payload.description, 2000);
+      const reference = normalizeSingleLine(payload.reference, 300);
+      const contactMethod = normalizeSingleLine(payload.contactMethod, 30).toLowerCase();
+
+      if (!name || !email || !phone || !projectTitle || !service || !description) {
+        throw new Error('Please complete all required fields before continuing.');
       }
-    );
 
-    portfolioVideos.forEach(video => observer.observe(video));
-  } else {
-    portfolioVideos.forEach(prepareVideo);
+      if (!contactMethod) {
+        throw new Error('Please choose WhatsApp or Gmail.');
+      }
+
+      const message = buildContactMessage({
+        name,
+        email,
+        phone,
+        projectTitle,
+        service,
+        description,
+        reference,
+      });
+
+      const targetUrl = buildRedirectUrl(contactMethod, message);
+
+      if (!targetUrl) {
+        throw new Error('Please choose WhatsApp or Gmail.');
+      }
+
+      setContactLoading(true);
+      window.location.assign(targetUrl);
+    } catch (error) {
+      setContactStatus(error.message || 'Something went wrong. Please try again.', 'error');
+    } finally {
+      setContactLoading(false);
+    }
+  });
+
+  function syncContactSelectStates() {
+    contactSelectControllers.forEach((controller) => {
+      controller.sync();
+      controller.close(false);
+      controller.wrapper.classList.remove('is-invalid');
+    });
   }
 
-  // Load any videos that are already on screen so the first visible cards
-  // do not depend on the observer firing later.
-  requestAnimationFrame(() => {
-    portfolioVideos.forEach(video => {
-      const rect = video.getBoundingClientRect();
-      if (rect.top < window.innerHeight + 120 && rect.bottom > -120) {
-        prepareVideo(video);
+  function validateContactSelects() {
+    const missingController = contactSelectControllers.find((controller) => !controller.select.value);
+
+    contactSelectControllers.forEach((controller) => {
+      controller.wrapper.classList.toggle('is-invalid', !controller.select.value);
+    });
+
+    if (missingController) {
+      setContactStatus('Please choose values for the dropdown fields before sending.', 'error');
+      missingController.open();
+      missingController.trigger.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  function enhanceContactSelect(select) {
+    if (!select || select.dataset.customSelectEnhanced === 'true') {
+      return;
+    }
+
+    select.dataset.customSelectEnhanced = 'true';
+    select.removeAttribute('required');
+    select.classList.add('contact-select__native');
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'contact-select';
+
+    const triggerId = select.id ? `${select.id}-trigger` : `contact-select-${contactSelectControllers.length + 1}-trigger`;
+    const listboxId = select.id ? `${select.id}-listbox` : `contact-select-${contactSelectControllers.length + 1}-listbox`;
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'contact-select__trigger';
+    trigger.id = triggerId;
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-controls', listboxId);
+
+    const valueEl = document.createElement('span');
+    valueEl.className = 'contact-select__value';
+
+    const iconEl = document.createElement('span');
+    iconEl.className = 'contact-select__icon';
+    iconEl.setAttribute('aria-hidden', 'true');
+
+    trigger.append(valueEl, iconEl);
+
+    const menu = document.createElement('div');
+    menu.className = 'contact-select__menu';
+    menu.id = listboxId;
+    menu.setAttribute('role', 'listbox');
+
+    const optionList = document.createElement('div');
+    optionList.className = 'contact-select__list';
+    menu.appendChild(optionList);
+
+    const label = select.labels && select.labels[0] ? select.labels[0] : null;
+    if (label) {
+      label.addEventListener('click', (event) => {
+        event.preventDefault();
+        openMenu();
+      });
+    }
+
+    const parent = select.parentNode;
+    parent.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(menu);
+
+    const optionButtons = [];
+
+    function updateState() {
+      const selectedOption = select.options[select.selectedIndex];
+      const hasValue = Boolean(select.value);
+
+      valueEl.textContent = hasValue
+        ? selectedOption.textContent.trim()
+        : (select.options[0] ? select.options[0].textContent.trim() : 'Select an option');
+      valueEl.classList.toggle('is-placeholder', !hasValue);
+      trigger.classList.toggle('has-value', hasValue);
+      wrapper.classList.toggle('has-value', hasValue);
+
+      optionButtons.forEach((button) => {
+        const isSelected = button.dataset.value === select.value;
+        button.classList.toggle('is-selected', isSelected);
+        button.setAttribute('aria-selected', String(isSelected));
+      });
+    }
+
+    function closeMenu(focusTrigger = false) {
+      wrapper.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+
+      if (focusTrigger) {
+        trigger.focus();
+      }
+    }
+
+    function openMenu() {
+      if (wrapper.classList.contains('is-open')) {
+        return;
+      }
+
+      contactSelectControllers.forEach((controller) => {
+        if (controller.select !== select) {
+          controller.close();
+        }
+      });
+
+      wrapper.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
+
+      requestAnimationFrame(() => {
+        const selectedButton =
+          optionButtons.find((button) => button.classList.contains('is-selected')) ||
+          optionButtons[0];
+
+        if (selectedButton) {
+          selectedButton.focus();
+        }
+      });
+    }
+
+    function setValue(value) {
+      select.value = value;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      select.removeAttribute('aria-invalid');
+      wrapper.classList.remove('is-invalid');
+      updateState();
+      closeMenu(true);
+    }
+
+    [...select.options].forEach((option, index) => {
+      const optionButton = document.createElement('button');
+      optionButton.type = 'button';
+      optionButton.className = 'contact-select__option';
+      optionButton.dataset.value = option.value;
+      optionButton.setAttribute('role', 'option');
+      optionButton.setAttribute('aria-selected', String(option.selected));
+      optionButton.textContent = option.textContent.trim();
+
+      if (index === 0 && !option.value) {
+        optionButton.classList.add('is-placeholder');
+      }
+
+      optionButton.addEventListener('click', () => {
+        setValue(option.value);
+      });
+
+      optionButton.addEventListener('keydown', (event) => {
+        const currentIndex = optionButtons.indexOf(optionButton);
+
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          (optionButtons[currentIndex + 1] || optionButtons[0]).focus();
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          (optionButtons[currentIndex - 1] || optionButtons[optionButtons.length - 1]).focus();
+        } else if (event.key === 'Home') {
+          event.preventDefault();
+          optionButtons[0].focus();
+        } else if (event.key === 'End') {
+          event.preventDefault();
+          optionButtons[optionButtons.length - 1].focus();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeMenu(true);
+        } else if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          setValue(optionButton.dataset.value);
+        }
+      });
+
+      optionList.appendChild(optionButton);
+      optionButtons.push(optionButton);
+    });
+
+    trigger.addEventListener('click', () => {
+      if (wrapper.classList.contains('is-open')) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    trigger.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        openMenu();
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (wrapper.classList.contains('is-open')) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      } else if (event.key === 'Escape') {
+        closeMenu();
+      }
+    });
+
+    wrapper.addEventListener('focusout', () => {
+      window.setTimeout(() => {
+        if (!wrapper.contains(document.activeElement)) {
+          closeMenu();
+        }
+      }, 0);
+    });
+
+    select.addEventListener('change', () => {
+      updateState();
+      wrapper.classList.remove('is-invalid');
+    });
+    updateState();
+
+    contactSelectControllers.push({
+      wrapper,
+      select,
+      trigger,
+      open: openMenu,
+      close: closeMenu,
+      sync: updateState,
+    });
+  }
+
+  contactForm.querySelectorAll('select.form-input').forEach(enhanceContactSelect);
+
+  contactForm.addEventListener('reset', () => {
+    window.setTimeout(syncContactSelectStates, 0);
+  });
+
+  document.addEventListener('click', (event) => {
+    contactSelectControllers.forEach((controller) => {
+      if (!controller.wrapper.contains(event.target)) {
+        controller.close();
       }
     });
   });
-}
 
-// Form submission for mailto form
-const contactForm = document.getElementById('contactForm');
-if (contactForm) {
-  contactForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Get form data
-    const name = this.querySelector('input[name="name"]').value;
-    const subject = this.querySelector('input[name="subject"]').value;
-    const message = this.querySelector('textarea[name="message"]').value;
-    
-    // Create mailto link
-    const emailBody = `Name: ${name}%0D%0A%0D%0AMessage:%0D%0A${message}`;
-    
-    // Open default email client
-    window.location.href = `mailto:Arvind90782@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
-    
-    // Show confirmation
-    alert('Opening your email client... Please send the pre-filled email to contact us.');
-    
-    // Reset form after a delay
-    setTimeout(() => {
-      this.reset();
-    }, 1000);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      contactSelectControllers.forEach((controller) => controller.close());
+    }
   });
 }
 
@@ -214,7 +531,7 @@ function updateLightbox() {
   
   if (isVideo) {
     lightboxContent.innerHTML = `
-      <video controls playsinline preload="metadata" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
+      <video controls style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
         <source src="${item.dataset.src}" type="video/mp4">
         Your browser does not support the video tag.
       </video>
@@ -222,16 +539,16 @@ function updateLightbox() {
     
     // Store reference to current video
     currentVideo = lightboxContent.querySelector('video');
-    if (currentVideo) {
-      const activeVideo = currentVideo;
-      activeVideo.playsInline = true;
-      activeVideo.autoplay = true;
-      activeVideo.muted = false;
-      activeVideo.defaultMuted = false;
-      activeVideo.preload = 'metadata';
-
-      activeVideo.play().catch(() => {});
-    }
+    currentVideo.addEventListener('play', function() {
+      currentVideo = this;
+    });
+    
+    // Auto play video
+    setTimeout(() => {
+      if (currentVideo) {
+        currentVideo.play().catch(e => console.log('Autoplay prevented:', e));
+      }
+    }, 300);
   } else {
     lightboxContent.innerHTML = `
       <img src="${item.dataset.src}" alt="Lightbox Image" style="max-width: 100%; max-height: 90vh; border-radius: 10px;">
@@ -410,14 +727,14 @@ if (projectForm) {
     if (contactMethod === 'whatsapp') {
       const whatsappMessage = encodeURIComponent(`Hello Nishant,\n\nI submitted a project:\n\nClient Name: ${name}\nProject Type: ${projectType}\nRaw Footage Link: ${footageLink}\n\nInstructions:\n${instructions}`);
       window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${whatsappMessage}`, '_blank');
-      alert('Opening WhatsApp to contact Edito Grapher...');
+      alert('Opening WhatsApp to contact Editor Nishant...');
     }
 
     // Handle Email submission -> open email client addressed to business
     else if (contactMethod === 'email') {
       const emailSubject = encodeURIComponent(`New Project Submission from ${name}`);
       window.location.href = `mailto:${BUSINESS_EMAIL}?subject=${emailSubject}&body=${encodeURIComponent(emailBody)}`;
-      alert('Opening your email client to message Edito Grapher...');
+      alert('Opening your email client to message Editor Nishant...');
     }
 
     // Reset form after a delay

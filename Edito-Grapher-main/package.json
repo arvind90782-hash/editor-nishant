@@ -1,0 +1,11 @@
+{
+  "name": "edito-grapher-main",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node ../server.js"
+  },
+  "dependencies": {
+    "nodemailer": "^8.0.4"
+  }
+}

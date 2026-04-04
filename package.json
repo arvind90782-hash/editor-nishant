@@ -4,10 +4,12 @@
   "description": "A web application",
   "main": "index.html",
   "scripts": {
-    "dev": "http-server Edito-Grapher-main -c-1 -o -p 8080",
+    "dev": "node server.js",
     "build": "echo 'No build process needed for static site'"
   },
-  "dependencies": {},
+  "dependencies": {
+    "nodemailer": "^8.0.4"
+  },
   "devDependencies": {
     "http-server": "^14.1.1"
   }
