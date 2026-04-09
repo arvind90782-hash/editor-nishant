@@ -24,7 +24,7 @@
               <li><a href="#full-videos">Full Videos</a></li>
             </ul>
           </li>
-          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#reviews">Reviews</a></li>
           <li><a href="#sotware-i-use">Softwares</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
@@ -122,39 +122,31 @@
     </div>
   </section>
 
-  <section id="testimonials" class="section">
+  <section id="reviews" class="section reviews-section">
     <div class="container">
-      <h2 class="section-title">What Clients Say</h2>
-      <div class="testimonials">
-        <div class="testimonial-card">
-          <div class="author-avatar">A</div>
-          <p class="testimonial-text">Amazing reels! My engagement literally doubled after working with Editor Nishant. They understand exactly what works in my niche and how to keep viewers hooked till the end. The attention to detail in every cut, transition, and caption is incredible!</p>
-          <div class="testimonial-author">
-            <div class="author-details">
-              <span class="author-name">Arjun Mehra</span>
-              <span class="author-role">Tech Reviewer</span>
-            </div>
+      <div class="reviews-panel">
+        <div class="reviews-header">
+          <div class="reviews-copy">
+            <p class="reviews-kicker">Trusted by clients</p>
+            <h2 class="section-title">Client Reviews</h2>
+            <p class="section-description">Fresh feedback from clients who trusted me with their content, edits, and brand story.</p>
           </div>
+          <button type="button" class="btn reviews-post-btn" id="openReviewModalBtn">Post Review</button>
         </div>
-        <div class="testimonial-card">
-          <div class="author-avatar">R</div>
-          <p class="testimonial-text">Very fast delivery and professional work. Nishant takes the time to understand your brand and creates videos that align perfectly with my style and audience. The editing, pacing, and overall quality are excellent. Highly recommended!</p>
-          <div class="testimonial-author">
-            <div class="author-details">
-              <span class="author-name">Riya Malhotra</span>
-              <span class="author-role">Lifestyle Vlogger</span>
-            </div>
+
+        <div class="reviews-stats" aria-live="polite">
+          <div class="reviews-rating">
+            <span class="reviews-rating__value" id="reviewAverageValue">0.0</span>
+            <span class="reviews-rating__star" aria-hidden="true">&#9733;</span>
+            <span class="reviews-rating__label">Average Rating</span>
           </div>
+          <p class="reviews-count" id="reviewCountText">Based on 0 reviews</p>
         </div>
-        <div class="testimonial-card">
-          <div class="author-avatar">K</div>
-          <p class="testimonial-text">Best video editor I've worked with! The attention to detail and creative approach has significantly boosted my channel growth. Worth every penny!</p>
-          <div class="testimonial-author">
-            <div class="author-details">
-              <span class="author-name">Karan Deshpande</span>
-              <span class="author-role">Gaming Creator</span>
-            </div>
-          </div>
+
+        <div class="reviews-track" id="reviewsTrack" role="list" aria-label="Client reviews"></div>
+
+        <div class="reviews-footer">
+          <button type="button" class="btn reviews-more-btn" id="loadMoreReviewsBtn">See More Reviews</button>
         </div>
       </div>
     </div>
@@ -307,6 +299,39 @@
     <div class="lightbox-nav">
       <button class="lightbox-prev" id="lightboxPrev">‹</button>
       <button class="lightbox-next" id="lightboxNext">›</button>
+    </div>
+  </div>
+
+  <div class="review-modal" id="reviewModal" aria-hidden="true">
+    <div class="review-modal__backdrop" data-review-modal-close></div>
+    <div class="review-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
+      <button type="button" class="review-modal__close" data-review-modal-close aria-label="Close review form">&times;</button>
+      <p class="review-modal__eyebrow">Share your experience</p>
+      <h3 id="reviewModalTitle">Post Review</h3>
+      <form id="reviewForm" novalidate>
+        <div class="review-form__group">
+          <label for="reviewName">Name</label>
+          <input type="text" id="reviewName" class="review-form__input" name="name" autocomplete="name" placeholder="Your name" required maxlength="80">
+        </div>
+        <div class="review-form__group">
+          <label>Star Rating</label>
+          <div class="review-stars" id="reviewStars" role="radiogroup" aria-label="Star rating">
+            <button type="button" class="review-star" data-rating="1" aria-label="1 star">&#9733;</button>
+            <button type="button" class="review-star" data-rating="2" aria-label="2 stars">&#9733;</button>
+            <button type="button" class="review-star" data-rating="3" aria-label="3 stars">&#9733;</button>
+            <button type="button" class="review-star" data-rating="4" aria-label="4 stars">&#9733;</button>
+            <button type="button" class="review-star" data-rating="5" aria-label="5 stars">&#9733;</button>
+          </div>
+          <p class="review-rating-hint" id="reviewRatingHint">Tap a star to rate your experience.</p>
+          <input type="hidden" id="reviewRating" name="rating" value="5">
+        </div>
+        <div class="review-form__group">
+          <label for="reviewText">Review</label>
+          <textarea id="reviewText" class="review-form__input review-form__textarea" name="review" rows="5" placeholder="Tell future clients what it was like to work together" required maxlength="300" minlength="10"></textarea>
+        </div>
+        <button type="submit" class="btn review-form__submit" data-review-submit>Submit Review</button>
+        <p id="reviewFormStatus" class="review-form__status" role="status" aria-live="polite"></p>
+      </form>
     </div>
   </div>
 

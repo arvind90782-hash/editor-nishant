@@ -804,3 +804,614 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
   // Re-check on viewport change
   mediaQuery.addEventListener("change", applyToggleLogic);
 }
+
+// Client Reviews
+(function initClientReviews() {
+  const reviewSection = document.getElementById('reviews');
+  const reviewsTrack = document.getElementById('reviewsTrack');
+  const reviewAverageValue = document.getElementById('reviewAverageValue');
+  const reviewCountText = document.getElementById('reviewCountText');
+  const loadMoreReviewsBtn = document.getElementById('loadMoreReviewsBtn');
+  const openReviewModalBtn = document.getElementById('openReviewModalBtn');
+  const reviewModal = document.getElementById('reviewModal');
+  const reviewForm = document.getElementById('reviewForm');
+  const reviewNameInput = document.getElementById('reviewName');
+  const reviewTextInput = document.getElementById('reviewText');
+  const reviewRatingInput = document.getElementById('reviewRating');
+  const reviewStars = document.getElementById('reviewStars');
+  const reviewRatingHint = document.getElementById('reviewRatingHint');
+  const reviewFormStatus = document.getElementById('reviewFormStatus');
+  const reviewSubmitBtn = reviewForm ? reviewForm.querySelector('[data-review-submit]') : null;
+
+  if (
+    !reviewSection ||
+    !reviewsTrack ||
+    !reviewAverageValue ||
+    !reviewCountText ||
+    !loadMoreReviewsBtn ||
+    !openReviewModalBtn ||
+    !reviewModal ||
+    !reviewForm ||
+    !reviewNameInput ||
+    !reviewTextInput ||
+    !reviewRatingInput ||
+    !reviewStars ||
+    !reviewRatingHint ||
+    !reviewFormStatus ||
+    !reviewSubmitBtn
+  ) {
+    return;
+  }
+
+  const INITIAL_VISIBLE_REVIEWS = 3;
+  const LOAD_MORE_REVIEWS = 6;
+  const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  const reviewState = {
+    reviews: [],
+    visibleCount: INITIAL_VISIBLE_REVIEWS,
+    selectedRating: 5,
+    observer: null,
+    loading: false,
+    postTimer: null,
+    triggerEl: null,
+  };
+
+  const reviewStarButtons = Array.from(reviewStars.querySelectorAll('.review-star'));
+  const reviewSubmitDefaultHtml = reviewSubmitBtn.innerHTML;
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function hashString(value) {
+    let hash = 0;
+
+    for (let index = 0; index < value.length; index += 1) {
+      hash = (hash * 31 + value.charCodeAt(index)) % 360;
+    }
+
+    return hash;
+  }
+
+  function formatReviewDate(value) {
+    const parsedDate = new Date(`${value}T00:00:00`);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return String(value || '');
+    }
+
+    return DATE_FORMATTER.format(parsedDate);
+  }
+
+  function getInitials(name) {
+    const parts = String(name || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (!parts.length) {
+      return '?';
+    }
+
+    return parts
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  function renderStarsMarkup(rating) {
+    return Array.from({ length: 5 }, (_, index) => {
+      const isFilled = index < rating;
+      return `<span class="review-card-star${isFilled ? ' is-filled' : ''}" aria-hidden="true">&#9733;</span>`;
+    }).join('');
+  }
+
+  function setReviewStatus(message = '', tone = '') {
+    reviewFormStatus.textContent = message;
+    reviewFormStatus.className = 'review-form__status';
+
+    if (tone) {
+      reviewFormStatus.classList.add(tone);
+    }
+  }
+
+  function setReviewLoading(isLoading) {
+    reviewState.loading = isLoading;
+    reviewSubmitBtn.disabled = isLoading;
+    reviewSubmitBtn.setAttribute('aria-busy', String(isLoading));
+    reviewSubmitBtn.classList.toggle('is-loading', isLoading);
+    reviewSubmitBtn.innerHTML = isLoading
+      ? '<span class="button-spinner" aria-hidden="true"></span><span>Submitting...</span>'
+      : reviewSubmitDefaultHtml;
+  }
+
+  function paintStars(rating) {
+    reviewStarButtons.forEach((button) => {
+      const starValue = Number(button.dataset.rating || '0');
+      const isFilled = starValue <= rating;
+
+      button.classList.toggle('is-filled', isFilled);
+      button.setAttribute('aria-checked', String(starValue === rating));
+    });
+  }
+
+  function setRating(rating, options = {}) {
+    const nextRating = Math.max(1, Math.min(5, Number(rating) || 5));
+    reviewState.selectedRating = nextRating;
+    reviewRatingInput.value = String(nextRating);
+    paintStars(nextRating);
+
+    if (options.updateHint !== false) {
+      reviewRatingHint.textContent = `${nextRating} star${nextRating === 1 ? '' : 's'} selected.`;
+    }
+  }
+
+  function previewRating(rating) {
+    const nextRating = Math.max(1, Math.min(5, Number(rating) || 5));
+    paintStars(nextRating);
+  }
+
+  function commitCurrentRating() {
+    setRating(reviewState.selectedRating, { updateHint: false });
+  }
+
+  function observeReviewCard(card) {
+    if (!card) {
+      return;
+    }
+
+    if (reviewState.observer) {
+      reviewState.observer.observe(card);
+      return;
+    }
+
+    card.classList.add('is-visible');
+  }
+
+  function createReviewCard(review, index) {
+    const card = document.createElement('article');
+    const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
+    const name = String(review.name || '').trim();
+    const text = String(review.review || '').trim();
+    const hue = (hashString(name) + index * 23) % 360;
+
+    card.className = 'review-card';
+    card.setAttribute('role', 'listitem');
+    card.style.setProperty('--card-delay', `${index * 90}ms`);
+    card.style.setProperty('--review-hue', String(hue));
+    card.innerHTML = `
+      <div class="review-card__top">
+        <div class="review-card__avatar" aria-hidden="true">${escapeHtml(getInitials(name))}</div>
+        <div class="review-card__head">
+          <h3 class="review-card__name">${escapeHtml(name)}</h3>
+          <p class="review-card__date">${escapeHtml(formatReviewDate(review.date))}</p>
+        </div>
+      </div>
+      <div class="review-card__rating" aria-label="${rating} out of 5 stars">
+        ${renderStarsMarkup(rating)}
+      </div>
+      <p class="review-card__text">${escapeHtml(text).replace(/\n/g, '<br>')}</p>
+    `;
+
+    return card;
+  }
+
+  function createMessageCard(title, message) {
+    const card = document.createElement('article');
+    card.className = 'review-card review-card--empty is-visible';
+    card.setAttribute('role', 'status');
+    card.innerHTML = `
+      <h3>${escapeHtml(title)}</h3>
+      <p>${escapeHtml(message)}</p>
+    `;
+    return card;
+  }
+
+  function updateSummary() {
+    const totalReviews = reviewState.reviews.length;
+
+    if (!totalReviews) {
+      reviewAverageValue.textContent = '0.0';
+      reviewCountText.textContent = 'Based on 0 reviews';
+      return;
+    }
+
+    const totalRating = reviewState.reviews.reduce((sum, review) => {
+      return sum + Math.max(1, Math.min(5, Number(review.rating) || 0));
+    }, 0);
+    const average = totalRating / totalReviews;
+
+    reviewAverageValue.textContent = average.toFixed(1);
+    reviewCountText.textContent = totalReviews === 1
+      ? 'Based on 1 review'
+      : `Based on ${totalReviews} reviews`;
+  }
+
+  function refreshLoadMoreButton() {
+    if (!loadMoreReviewsBtn) {
+      return;
+    }
+
+    const totalReviews = reviewState.reviews.length;
+    const canToggle = totalReviews > INITIAL_VISIBLE_REVIEWS;
+
+    loadMoreReviewsBtn.hidden = !canToggle;
+
+    if (!canToggle) {
+      return;
+    }
+
+    const isExpanded = reviewState.visibleCount >= totalReviews;
+    loadMoreReviewsBtn.textContent = isExpanded ? 'See Less Reviews' : 'See More Reviews';
+    loadMoreReviewsBtn.setAttribute('aria-expanded', String(isExpanded));
+  }
+
+  function renderReviews(options = {}) {
+    const preserveScroll = Boolean(options.preserveScroll);
+    const scrollLeft = preserveScroll ? reviewsTrack.scrollLeft : 0;
+    const visibleReviews = reviewState.reviews.slice(0, reviewState.visibleCount);
+
+    reviewsTrack.innerHTML = '';
+
+    if (!visibleReviews.length) {
+      reviewsTrack.appendChild(
+        createMessageCard(
+          'No reviews yet',
+          'Be the first to share your experience.'
+        )
+      );
+    } else {
+      visibleReviews.forEach((review, index) => {
+        const card = createReviewCard(review, index);
+        reviewsTrack.appendChild(card);
+        observeReviewCard(card);
+      });
+    }
+
+    updateSummary();
+    refreshLoadMoreButton();
+
+    if (preserveScroll) {
+      window.requestAnimationFrame(() => {
+        reviewsTrack.scrollLeft = scrollLeft;
+      });
+    }
+  }
+
+  function renderLoadingState() {
+    reviewsTrack.innerHTML = '';
+    reviewsTrack.appendChild(
+      createMessageCard('Loading reviews', 'Fetching the latest client feedback...')
+    );
+    reviewAverageValue.textContent = '0.0';
+    reviewCountText.textContent = 'Loading reviews...';
+    refreshLoadMoreButton();
+  }
+
+  function applyServerReviews(reviews) {
+    reviewState.reviews = Array.isArray(reviews) ? reviews : [];
+    reviewState.visibleCount = Math.min(INITIAL_VISIBLE_REVIEWS, reviewState.reviews.length);
+    renderReviews();
+  }
+
+  function openReviewModal() {
+    reviewState.triggerEl = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : openReviewModalBtn;
+
+    if (reviewState.postTimer) {
+      window.clearTimeout(reviewState.postTimer);
+      reviewState.postTimer = null;
+    }
+
+    reviewModal.classList.add('is-open');
+    reviewModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('review-modal-open');
+    reviewForm.reset();
+    reviewState.selectedRating = 5;
+    reviewRatingInput.value = '5';
+    setRating(5);
+    setReviewStatus('');
+
+    window.requestAnimationFrame(() => {
+      reviewNameInput.focus();
+    });
+  }
+
+  function closeReviewModal() {
+    if (reviewState.postTimer) {
+      window.clearTimeout(reviewState.postTimer);
+      reviewState.postTimer = null;
+    }
+
+    reviewModal.classList.remove('is-open');
+    reviewModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('review-modal-open');
+    reviewForm.reset();
+    reviewState.selectedRating = 5;
+    reviewRatingInput.value = '5';
+    setRating(5);
+    setReviewStatus('');
+
+    if (reviewState.triggerEl && typeof reviewState.triggerEl.focus === 'function') {
+      reviewState.triggerEl.focus();
+    } else {
+      openReviewModalBtn.focus();
+    }
+  }
+
+  function addSubmittedReview(review) {
+    reviewState.reviews.unshift(review);
+    renderReviews({ preserveScroll: true });
+  }
+
+  reviewStarButtons.forEach((button) => {
+    button.setAttribute('role', 'radio');
+    button.setAttribute('aria-checked', 'false');
+
+    button.addEventListener('mouseenter', () => {
+      previewRating(button.dataset.rating);
+    });
+
+    button.addEventListener('focus', () => {
+      previewRating(button.dataset.rating);
+    });
+
+    button.addEventListener('click', () => {
+      setRating(button.dataset.rating);
+    });
+  });
+
+  reviewStars.addEventListener('mouseleave', commitCurrentRating);
+  reviewStars.addEventListener('focusout', () => {
+    window.setTimeout(() => {
+      if (!reviewStars.contains(document.activeElement)) {
+        commitCurrentRating();
+      }
+    }, 0);
+  });
+
+  reviewStars.addEventListener('keydown', (event) => {
+    const activeButton = event.target.closest('.review-star');
+
+    if (!activeButton) {
+      return;
+    }
+
+    const currentRating = Number(activeButton.dataset.rating || reviewState.selectedRating);
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const nextRating = Math.min(5, currentRating + 1);
+      setRating(nextRating);
+      reviewStars.querySelector(`.review-star[data-rating="${nextRating}"]`)?.focus();
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      const nextRating = Math.max(1, currentRating - 1);
+      setRating(nextRating);
+      reviewStars.querySelector(`.review-star[data-rating="${nextRating}"]`)?.focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      setRating(1);
+      reviewStars.querySelector('.review-star[data-rating="1"]')?.focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      setRating(5);
+      reviewStars.querySelector('.review-star[data-rating="5"]')?.focus();
+    }
+  });
+
+  loadMoreReviewsBtn.addEventListener('click', () => {
+    const totalReviews = reviewState.reviews.length;
+    const isExpanded = reviewState.visibleCount >= totalReviews;
+
+    if (isExpanded) {
+      reviewState.visibleCount = Math.min(INITIAL_VISIBLE_REVIEWS, totalReviews);
+    } else {
+      reviewState.visibleCount = Math.min(
+        reviewState.visibleCount + LOAD_MORE_REVIEWS,
+        totalReviews
+      );
+    }
+
+    renderReviews({ preserveScroll: true });
+  });
+
+  openReviewModalBtn.addEventListener('click', openReviewModal);
+
+  reviewModal.addEventListener('click', (event) => {
+    if (event.target === reviewModal || event.target.closest('[data-review-modal-close]')) {
+      closeReviewModal();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && reviewModal.classList.contains('is-open')) {
+      closeReviewModal();
+    }
+  });
+
+  reviewForm.addEventListener('reset', () => {
+    window.setTimeout(() => {
+      reviewState.selectedRating = 5;
+      reviewRatingInput.value = '5';
+      setRating(5);
+      setReviewStatus('');
+    }, 0);
+  });
+
+  reviewForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (reviewState.loading) {
+      return;
+    }
+
+    const name = reviewNameInput.value.trim();
+    const reviewText = reviewTextInput.value.trim();
+    const rating = Number(reviewRatingInput.value || reviewState.selectedRating);
+
+    if (!name) {
+      setReviewStatus('Name cannot be empty.', 'error');
+      reviewNameInput.focus();
+      return;
+    }
+
+    if (reviewText.length < 10) {
+      setReviewStatus('Review must be at least 10 characters.', 'error');
+      reviewTextInput.focus();
+      return;
+    }
+
+    if (reviewText.length > 300) {
+      setReviewStatus('Review must be 300 characters or less.', 'error');
+      reviewTextInput.focus();
+      return;
+    }
+
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      setReviewStatus('Please choose a star rating.', 'error');
+      return;
+    }
+
+    setReviewStatus('');
+    setReviewLoading(true);
+
+    try {
+      const response = await fetch('/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          rating,
+          review: reviewText,
+        }),
+      });
+
+      const responseData = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Unable to save your review.');
+      }
+
+      const createdReview =
+        responseData && typeof responseData.review === 'object' && responseData.review !== null
+          ? responseData.review
+          : responseData;
+
+      addSubmittedReview(createdReview);
+      await loadReviews({
+        preserveVisibleCount: true,
+        preserveScroll: true,
+        showLoadingState: false,
+      });
+
+      setReviewStatus('Review posted successfully.', 'success');
+
+      if (reviewState.postTimer) {
+        window.clearTimeout(reviewState.postTimer);
+      }
+
+      reviewState.postTimer = window.setTimeout(() => {
+        reviewState.postTimer = null;
+        closeReviewModal();
+      }, 700);
+    } catch (error) {
+      setReviewStatus(error.message || 'Unable to save your review.', 'error');
+    } finally {
+      setReviewLoading(false);
+    }
+  });
+
+  async function loadReviews(options = {}) {
+    const showLoadingState = options.showLoadingState !== false;
+
+    if (showLoadingState) {
+      renderLoadingState();
+    }
+
+    try {
+      const response = await fetch('/reviews', {
+        cache: 'no-store',
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error((payload && payload.error) || 'Unable to load reviews.');
+      }
+
+      const reviews = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload.reviews)
+          ? payload.reviews
+          : [];
+
+      if (options.preserveVisibleCount) {
+        const previousVisibleCount = reviewState.visibleCount;
+        reviewState.reviews = Array.isArray(reviews) ? reviews : [];
+        reviewState.visibleCount = Math.min(
+          Math.max(previousVisibleCount, INITIAL_VISIBLE_REVIEWS),
+          reviewState.reviews.length
+        );
+        renderReviews({ preserveScroll: Boolean(options.preserveScroll) });
+      } else {
+        applyServerReviews(reviews);
+      }
+    } catch (error) {
+      console.error('[reviews] load failed:', error);
+      if (showLoadingState) {
+        reviewsTrack.innerHTML = '';
+        reviewsTrack.appendChild(
+          createMessageCard(
+            'Reviews unavailable',
+            error.message || 'Unable to load reviews right now.'
+          )
+        );
+        reviewAverageValue.textContent = '0.0';
+        reviewCountText.textContent = 'Based on 0 reviews';
+        loadMoreReviewsBtn.hidden = true;
+      } else {
+        setReviewStatus(error.message || 'Unable to refresh reviews right now.', 'error');
+      }
+    }
+  }
+
+  function createObserver() {
+    if (!('IntersectionObserver' in window)) {
+      return null;
+    }
+
+    return new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.35,
+        rootMargin: '0px 0px -10% 0px',
+      }
+    );
+  }
+
+  reviewState.observer = createObserver();
+
+  loadReviews();
+})();
