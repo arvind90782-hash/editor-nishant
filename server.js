@@ -11,6 +11,7 @@ const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false }));
+app.use('/Tactic.Sans', express.static(path.join(__dirname, 'Tactic.Sans')));
 app.use(express.static(SITE_DIR));
 
 function sendApiError(res, error, fallbackMessage) {

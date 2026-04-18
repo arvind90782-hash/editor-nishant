@@ -9,9 +9,8 @@
     }
 
     @font-face {
-      font-family: "Tactic Sans Ultra";
+      font-family: "TacticSans-Ult";
       src:
-        local("Tactic Sans Ultra"),
         local("TacticSans-Ult"),
         url("../Tactic.Sans/TacticSans-Ult.otf") format("opentype");
       font-weight: 400;
@@ -430,14 +429,15 @@
       object-fit: cover;
     }
 
-    .hero-container h2 {
-      font-family: "Tactic Sans Ultra", "Bebas Neue", sans-serif;
-      font-weight: 400;
+    #hero .hero-container h2 {
+      font-family: "TacticSans-Ult", "Bebas Neue", sans-serif !important;
+      font-weight: 400 !important;
       font-size: 3.2rem;
       margin-bottom: 1rem;
       background: var(--gradient);
       background-clip: text;
       -webkit-text-fill-color: transparent;
+      font-synthesis: none;
     }
 
     .hero-container p {
@@ -1653,7 +1653,7 @@
         padding: 2.5rem 0;
       }
 
-      .hero-container h2 {
+      #hero .hero-container h2 {
         font-size: 2.8rem;
       }
       
