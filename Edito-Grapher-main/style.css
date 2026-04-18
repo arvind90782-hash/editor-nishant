@@ -11,10 +11,32 @@
     @font-face {
       font-family: "Tactic Sans";
       src:
+        local("Tactic Sans Black"),
+        local("TacticSans-Blk"),
+        url("../Tactic.Sans/TacticSans-Blk.otf") format("opentype");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Tactic Sans";
+      src:
         local("Tactic Sans Bold"),
         local("TacticSans-Bld"),
         url("../Tactic.Sans/TacticSans-Bld.otf") format("opentype");
       font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Tactic Sans";
+      src:
+        local("Tactic Sans Medium"),
+        local("TacticSans-Med"),
+        url("../Tactic.Sans/TacticSans-Med.otf") format("opentype");
+      font-weight: 500;
       font-style: normal;
       font-display: swap;
     }
@@ -64,8 +86,8 @@
     }
 
     .logo {
-      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
-      font-weight: 700;
+      font-family: "Bebas Neue", sans-serif;
+      font-weight: 400;
       letter-spacing: 1px;
       background: var(--gradient);
       background-clip: text;
@@ -81,7 +103,8 @@
       line-height: 1;
       margin: 0;
       white-space: nowrap;
-      font-weight: 700;
+      font-family: "Bebas Neue", sans-serif;
+      font-weight: 400;
       font-synthesis: none;
     }
 
@@ -95,7 +118,7 @@
     /* Gradient title styling for about page and other headings */
     .gradient-title {
       font-family: "Tactic Sans", "Bebas Neue", sans-serif;
-      font-weight: 700;
+      font-weight: 900;
       letter-spacing: 1px;
       background: var(--gradient);
       background-clip: text;
@@ -341,7 +364,8 @@
       text-align: center;
       margin-bottom: 1rem;
       font-size: 2.8rem;
-      font-family: "Bebas Neue";
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 700;
       color: var(--accent);
       letter-spacing: 1px;
     }
@@ -362,7 +386,8 @@
     }
 
     .about-header h1 {
-      font-family: "Bebas Neue";
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 900;
       font-size: 4rem;
       color: var(--accent);
       margin-bottom: 1rem;
@@ -428,7 +453,8 @@
     }
 
     .hero-container h2 {
-      font-family: "Bebas Neue";
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 900;
       font-size: 3.2rem;
       margin-bottom: 1rem;
       background: var(--gradient);
@@ -444,8 +470,9 @@
     }
 
     .hero-container p span {
+      font-family: "Tactic Sans", "Inter", sans-serif;
+      font-weight: 500;
       color: var(--accent);
-      font-weight: 600;
     }
 
     /* Video Section - Centered */
@@ -618,7 +645,7 @@
     }
 
     .testimonial-text {
-      font-style: italic;
+      font-style: normal;
       margin: 2.5rem 0;
       position: relative;
       line-height: 1.8;
@@ -636,8 +663,9 @@
     }
 
     .testimonial-author {
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 700;
       color: var(--accent);
-      font-weight: 600;
       font-size: 1.1rem;
       display: flex;
       align-items: center;
@@ -650,6 +678,7 @@
     }
 
     .author-name {
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
       font-weight: 700;
       color: var(--text);
     }
@@ -733,7 +762,7 @@
       margin-top: 1rem;
       font-size: 0.9rem;
       opacity: 0.7;
-      font-style: italic;
+      font-style: normal;
     }
 
     .form-group {
@@ -1087,7 +1116,8 @@
     }
 
     .social-title {
-      font-family: "Bebas Neue";
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 700;
       font-size: 2.2rem;
       color: var(--accent);
       margin-bottom: 1rem;
@@ -1232,7 +1262,8 @@
     }
 
     .about-section h2 {
-      font-family: "Bebas Neue";
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 700;
       font-size: 2.5rem;
       color: var(--accent);
       margin: 3rem 0 1.5rem;
@@ -1253,6 +1284,11 @@
       line-height: 1.8;
       opacity: 0.9;
       text-align: left;
+    }
+
+    .about-section p span {
+      font-family: "Tactic Sans", "Inter", sans-serif;
+      font-weight: 500;
     }
 
     .about-section ul {
@@ -1290,6 +1326,8 @@
     }
 
     .service-card h4 {
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 700;
       color: var(--accent);
       font-size: 1.3rem;
       margin-bottom: 1rem;
@@ -1316,7 +1354,8 @@
     }
 
     .about-cta h3 {
-      font-family: "Bebas Neue";
+      font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+      font-weight: 700;
       font-size: 2.5rem;
       color: var(--accent);
       margin-bottom: 1.5rem;
@@ -2006,6 +2045,7 @@ body.review-modal-open {
   color: var(--accent);
   font-size: 0.78rem;
   font-weight: 700;
+  font-family: "Tactic Sans", "Bebas Neue", sans-serif;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -2063,7 +2103,8 @@ body.review-modal-open {
 
 .reviews-rating__value {
   font-size: clamp(2.2rem, 4vw, 3rem);
-  font-weight: 800;
+  font-family: "Tactic Sans", "Bebas Neue", sans-serif;
+  font-weight: 900;
   line-height: 1;
   color: var(--text);
 }
