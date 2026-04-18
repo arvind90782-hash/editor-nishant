@@ -1,7 +1,7 @@
 const path = require('path');
 const express = require('express');
 const { handleContactSubmission } = require('./lib/contact-core');
-const { addReview, getAllReviews } = require('./lib/reviews-core');
+const { addReview, getAllReviews, removeReview } = require('./lib/reviews-core');
 
 const PORT = Number(process.env.PORT || 8080);
 const SITE_DIR = path.join(__dirname, 'Edito-Grapher-main');
@@ -66,6 +66,32 @@ async function handlePostReview(req, res) {
 ['/reviews', '/api/reviews'].forEach((route) => {
   app.get(route, handleGetReviews);
   app.post(route, handlePostReview);
+  app.delete(route, async (req, res) => {
+    try {
+      const deletedCount = await removeReview({
+        ...(req.query || {}),
+        ...(req.body || {}),
+      });
+
+      if (!deletedCount) {
+        res.setHeader('Cache-Control', 'no-store');
+        res.status(404).json({
+          success: false,
+          error: 'Review not found.',
+        });
+        return;
+      }
+
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(200).json({
+        success: true,
+        deletedCount,
+      });
+    } catch (error) {
+      console.error('[reviews api] delete failed:', error);
+      sendApiError(res, error, 'Failed to delete review');
+    }
+  });
 });
 
 app.use((error, req, res, next) => {

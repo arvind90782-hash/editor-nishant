@@ -1,4 +1,9 @@
-const { addReview, createError, getAllReviews } = require('../lib/reviews-core');
+const {
+  addReview,
+  createError,
+  getAllReviews,
+  removeReview,
+} = require('../lib/reviews-core');
 
 async function readRequestBody(req) {
   if (req.body && typeof req.body === 'object') {
@@ -37,47 +42,71 @@ async function readRequestBody(req) {
   }
 }
 
+function sendApiError(res, error, fallbackMessage) {
+  const statusCode = Number.isInteger(error && error.statusCode) ? error.statusCode : 500;
+  const message = error && error.message ? error.message : fallbackMessage;
+
+  return res.status(statusCode).json({
+    success: false,
+    error: message,
+  });
+}
+
 module.exports = async function reviewsHandler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
 
-  if (req.method === 'GET') {
-    try {
+  try {
+    if (req.method === 'GET') {
       const reviews = await getAllReviews();
 
       return res.status(200).json(reviews);
-    } catch (error) {
-      console.error('[reviews api] fetch failed:', error);
-      const statusCode = error.statusCode || 500;
-      const message = error.message || 'Failed to load reviews';
-
-      return res.status(statusCode).json({
-        success: false,
-        error: message,
-      });
     }
-  }
 
-  if (req.method === 'POST') {
-    try {
+    if (req.method === 'POST') {
       const body = await readRequestBody(req);
-      const review = await addReview(body);
+      const review = await addReview(body || {});
 
-      return res.status(201).json(review);
-    } catch (error) {
-      console.error('[reviews api] submission failed:', error);
-      const statusCode = error.statusCode || 500;
-      const message = error.message || 'Failed to save review';
-
-      return res.status(statusCode).json({
-        success: false,
-        error: message,
+      return res.status(201).json({
+        success: true,
+        review,
       });
     }
-  }
 
-  res.setHeader('Allow', 'GET, POST');
-  return res.status(405).json({
-    success: false,
-    error: 'Method not allowed.',
-  });
+    if (req.method === 'DELETE') {
+      const body = await readRequestBody(req);
+      const payload = {
+        ...(req.query || {}),
+        ...(body || {}),
+      };
+      const deletedCount = await removeReview(payload);
+
+      if (!deletedCount) {
+        return res.status(404).json({
+          success: false,
+          error: 'Review not found.',
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        deletedCount,
+      });
+    }
+
+    res.setHeader('Allow', 'GET, POST, DELETE');
+    return res.status(405).json({
+      success: false,
+      error: 'Method not allowed.',
+    });
+  } catch (error) {
+    console.error('[reviews api] request failed:', error);
+    const fallbackMessage =
+      req.method === 'GET'
+        ? 'Failed to load reviews'
+        : req.method === 'DELETE'
+          ? 'Failed to delete review'
+          : 'Failed to save review';
+
+    return sendApiError(res, error, fallbackMessage);
+  }
 };

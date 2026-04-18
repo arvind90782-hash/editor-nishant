@@ -9,3 +9,6 @@ dist/
 build/
 
 .vercel
+.env*.local
+data/reviews.local.json
+Edito-Grapher-main/reviews.local.json
