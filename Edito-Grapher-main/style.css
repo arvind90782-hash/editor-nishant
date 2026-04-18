@@ -10,7 +10,10 @@
 
     @font-face {
       font-family: "Tactic Sans";
-      src: local("Tactic Sans Bold"), local("TacticSans-Bld"), local("Tactic Sans");
+      src:
+        local("Tactic Sans Bold"),
+        local("TacticSans-Bld"),
+        url("../Tactic.Sans/TacticSans-Bld.otf") format("opentype");
       font-weight: 700;
       font-style: normal;
       font-display: swap;
