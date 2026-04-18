@@ -39,7 +39,7 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
-app.get('/reviews', async (req, res) => {
+async function handleGetReviews(req, res) {
   try {
     const reviews = await getAllReviews();
 
@@ -49,9 +49,9 @@ app.get('/reviews', async (req, res) => {
     console.error('[reviews api] fetch failed:', error);
     sendApiError(res, error, 'Failed to load reviews');
   }
-});
+}
 
-app.post('/reviews', async (req, res) => {
+async function handlePostReview(req, res) {
   try {
     const review = await addReview(req.body || {});
 
@@ -61,6 +61,11 @@ app.post('/reviews', async (req, res) => {
     console.error('[reviews api] submission failed:', error);
     sendApiError(res, error, 'Failed to save review');
   }
+}
+
+['/reviews', '/api/reviews'].forEach((route) => {
+  app.get(route, handleGetReviews);
+  app.post(route, handlePostReview);
 });
 
 app.use((error, req, res, next) => {

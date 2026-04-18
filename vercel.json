@@ -1,3 +1,9 @@
 {
-  "outputDirectory": "Edito-Grapher-main"
+  "outputDirectory": "Edito-Grapher-main",
+  "rewrites": [
+    {
+      "source": "/reviews",
+      "destination": "/api/reviews"
+    }
+  ]
 }
