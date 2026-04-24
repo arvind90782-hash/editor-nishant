@@ -40,11 +40,11 @@
 
   <section id="hero" class="hero">
     <div class="header-video">
-  <video muted autoplay loop playsinline src="./hero.mp4"></video>
+  <video muted autoplay loop playsinline preload="metadata" fetchpriority="high" loading="eager" src="./hero.mp4"></video>
 </div>
 
     <div class="hero-container">
-      <img src="profile-image/nishant singh.webp" alt="Profile" class="profile-img" />
+      <img src="profile-image/nishant singh.webp" alt="Profile" class="profile-img" loading="eager" fetchpriority="high" decoding="async" />
       <h2>Nishant Singh</h2>
       <p>I'm Nishant Singh, a professional <span>video editor, motion graphics designer, and website developer</span> and an agency owner of <span>Editor Nishant</span>. I help creators and brands grow with high-quality <span>videos, reels, and web experiences</span>. I focus on clean editing, creative storytelling, website design, and fast delivery.</p>
     </div>
@@ -56,7 +56,7 @@
       <div class="gallery">
 
         <div class="video" data-type="video" data-src="./Short videos/short 1.mp4">
-          <video muted playsinline autoplay preload="none" poster="./Short videos/cover 1.png" src="./Short videos/short 1.mp4"></video>
+          <video muted playsinline preload="none" loading="lazy" decoding="async" poster="./Short videos/cover 1.png" src="./Short videos/short 1.mp4"></video>
         </div>
         <div class="video" data-type="video" data-src="./Short videos/short 2.mp4">
           <video preload="none" poster="./Short videos/cover 2.png" src="./Short videos/short 2.mp4"></video>
@@ -159,47 +159,47 @@
         <div class="tools">
 
           <div class="tool">
-            <img class="capcut" src="Software/capcut.webp" alt="CapCut">
+            <img class="capcut" src="Software/capcut.webp" alt="CapCut" loading="lazy" decoding="async">
             <p>CapCut Pro</p>
           </div>
 
           <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968525.png" alt="Premiere Pro">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968525.png" alt="Premiere Pro" loading="lazy" decoding="async">
             <p>Adobe Premiere Pro</p>
           </div>
 
           <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968428.png " alt="After Effects">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968428.png " alt="After Effects" loading="lazy" decoding="async">
             <p>Adobe After Effects</p>
           </div>
 
           <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968442.png " alt="Adobe Audition">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968442.png " alt="Adobe Audition" loading="lazy" decoding="async">
             <p>Adobe Audition</p>
           </div>
 
           <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968520.png" alt="Photoshop">
+            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968520.png" alt="Photoshop" loading="lazy" decoding="async">
             <p>Adobe Photoshop</p>
           </div>
 
           <div class="tool">
-            <img src="Software/canva.webp" alt="Canva">
+            <img src="Software/canva.webp" alt="Canva" loading="lazy" decoding="async">
             <p>Canva</p>
           </div>
 
           <div class="tool">
-            <img src="https://code.visualstudio.com/assets/branding/code-stable.png" alt="Visual Studio Code">
+            <img src="https://code.visualstudio.com/assets/branding/code-stable.png" alt="Visual Studio Code" loading="lazy" decoding="async">
             <p>Visual Studio Code</p>
           </div>
 
           <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/128/1051/1051277.png" alt="HTML">
+            <img src="https://cdn-icons-png.flaticon.com/128/1051/1051277.png" alt="HTML" loading="lazy" decoding="async">
             <p><HTML></HTML></p>
           </div>
 
           <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/128/3291/3291695.png" alt="Github">
+            <img src="https://cdn-icons-png.flaticon.com/128/3291/3291695.png" alt="Github" loading="lazy" decoding="async">
             <p>Github</p>
           </div>
 
@@ -341,6 +341,6 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <link rel="preload" href="script.js" as="script"><script src="script.js" defer></script>
 </body>
 </html>

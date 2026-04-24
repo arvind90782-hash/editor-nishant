@@ -658,12 +658,13 @@ function initScrollAnimation() {
   window.addEventListener('scroll', onScrollCheck, { passive: true });
 }
 
-window.addEventListener('load', initScrollAnimation);
-
-// If page is already fully loaded (e.g. bfcache), initialize immediately.
-if (document.readyState === 'complete') {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initScrollAnimation, { once: true });
+} else {
   initScrollAnimation();
 }
+
+window.addEventListener('load', checkScroll, { once: true });
 
 // Smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -863,6 +864,8 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
 
   const reviewStarButtons = Array.from(reviewStars.querySelectorAll('.review-star'));
   const reviewSubmitDefaultHtml = reviewSubmitBtn.innerHTML;
+  const REVIEWS_ENDPOINT = '/api/reviews';
+  const compactReviewsQuery = window.matchMedia('(max-width: 640px)');
 
   function escapeHtml(value) {
     return String(value)
@@ -908,6 +911,21 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
       .map((part) => part[0])
       .join('')
       .toUpperCase();
+  }
+
+  async function readJsonResponse(response, fallbackMessage) {
+    const raw = await response.text();
+    const trimmed = raw.trim();
+
+    if (!trimmed) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      throw new Error(fallbackMessage);
+    }
   }
 
   function renderStarsMarkup(rating) {
@@ -966,6 +984,42 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
     setRating(reviewState.selectedRating, { updateHint: false });
   }
 
+  function isCompactReviewsLayout() {
+    return compactReviewsQuery.matches;
+  }
+
+  function scrollReviewsToStart(behavior = 'auto') {
+    if (typeof reviewsTrack.scrollTo === 'function') {
+      reviewsTrack.scrollTo({
+        left: 0,
+        behavior,
+      });
+      return;
+    }
+
+    reviewsTrack.scrollLeft = 0;
+  }
+
+  function scrollReviewCardIntoView(index, behavior = 'smooth') {
+    const targetCard = reviewsTrack.children[index];
+
+    if (!targetCard) {
+      scrollReviewsToStart(behavior);
+      return;
+    }
+
+    if (typeof targetCard.scrollIntoView === 'function') {
+      targetCard.scrollIntoView({
+        behavior,
+        block: 'nearest',
+        inline: 'start',
+      });
+      return;
+    }
+
+    scrollReviewsToStart(behavior);
+  }
+
   function observeReviewCard(card) {
     if (!card) {
       return;
@@ -988,7 +1042,6 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
 
     card.className = 'review-card';
     card.setAttribute('role', 'listitem');
-    card.style.setProperty('--card-delay', `${index * 90}ms`);
     card.style.setProperty('--review-hue', String(hue));
     card.innerHTML = `
       <div class="review-card__top">
@@ -1153,7 +1206,11 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
 
   function addSubmittedReview(review) {
     reviewState.reviews.unshift(review);
-    renderReviews({ preserveScroll: true });
+    renderReviews({ preserveScroll: !isCompactReviewsLayout() });
+
+    if (isCompactReviewsLayout()) {
+      scrollReviewsToStart('auto');
+    }
   }
 
   reviewStarButtons.forEach((button) => {
@@ -1214,18 +1271,29 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
 
   loadMoreReviewsBtn.addEventListener('click', () => {
     const totalReviews = reviewState.reviews.length;
-    const isExpanded = reviewState.visibleCount >= totalReviews;
+    const previousVisibleCount = reviewState.visibleCount;
+    const isExpanded = previousVisibleCount >= totalReviews;
 
     if (isExpanded) {
       reviewState.visibleCount = Math.min(INITIAL_VISIBLE_REVIEWS, totalReviews);
     } else {
       reviewState.visibleCount = Math.min(
-        reviewState.visibleCount + LOAD_MORE_REVIEWS,
+        previousVisibleCount + LOAD_MORE_REVIEWS,
         totalReviews
       );
     }
 
-    renderReviews({ preserveScroll: true });
+    renderReviews({ preserveScroll: !isCompactReviewsLayout() });
+
+    if (isCompactReviewsLayout()) {
+      window.requestAnimationFrame(() => {
+        if (isExpanded) {
+          scrollReviewsToStart('auto');
+        } else {
+          scrollReviewCardIntoView(previousVisibleCount, 'smooth');
+        }
+      });
+    }
   });
 
   openReviewModalBtn.addEventListener('click', openReviewModal);
@@ -1289,7 +1357,7 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
     setReviewLoading(true);
 
     try {
-      const response = await fetch('/reviews', {
+      const response = await fetch(REVIEWS_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1301,10 +1369,15 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
         }),
       });
 
-      const responseData = await response.json().catch(() => ({}));
+      const responseData = await readJsonResponse(
+        response,
+        response.ok
+          ? 'Unexpected review response from the server.'
+          : 'Unable to save your review.'
+      );
 
       if (!response.ok) {
-        throw new Error(responseData.error || 'Unable to save your review.');
+        throw new Error((responseData && responseData.error) || 'Unable to save your review.');
       }
 
       const createdReview =
@@ -1312,12 +1385,20 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
           ? responseData.review
           : responseData;
 
+      if (!createdReview || typeof createdReview !== 'object') {
+        throw new Error('Unable to save your review.');
+      }
+
       addSubmittedReview(createdReview);
       await loadReviews({
         preserveVisibleCount: true,
-        preserveScroll: true,
+        preserveScroll: !isCompactReviewsLayout(),
         showLoadingState: false,
       });
+
+      if (isCompactReviewsLayout()) {
+        scrollReviewsToStart('auto');
+      }
 
       setReviewStatus('Review posted successfully.', 'success');
 
@@ -1344,11 +1425,16 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
     }
 
     try {
-      const response = await fetch('/reviews', {
+      const response = await fetch(REVIEWS_ENDPOINT, {
         cache: 'no-store',
       });
 
-      const payload = await response.json();
+      const payload = await readJsonResponse(
+        response,
+        response.ok
+          ? 'Unexpected reviews response from the server.'
+          : 'Unable to load reviews.'
+      );
 
       if (!response.ok) {
         throw new Error((payload && payload.error) || 'Unable to load reviews.');
@@ -1405,13 +1491,14 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
         });
       },
       {
-        threshold: 0.35,
-        rootMargin: '0px 0px -10% 0px',
+        threshold: 0.2,
+        rootMargin: '0px 0px -5% 0px',
       }
     );
   }
 
   reviewState.observer = createObserver();
+  refreshLoadMoreButton();
 
-  loadReviews();
+  loadReviews({ showLoadingState: false });
 })();
