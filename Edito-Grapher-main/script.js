@@ -1502,3 +1502,13 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
 
   loadReviews({ showLoadingState: false });
 })();
+
+const scrollBox = document.getElementById("softwareScroll");
+
+document.querySelector(".nav-btn.right").onclick = () => {
+  scrollBox.scrollBy({ left: 200, behavior: "smooth" });
+};
+
+document.querySelector(".nav-btn.left").onclick = () => {
+  scrollBox.scrollBy({ left: -200, behavior: "smooth" });
+};

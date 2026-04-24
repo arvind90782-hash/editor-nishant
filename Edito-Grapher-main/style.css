@@ -664,59 +664,110 @@
       color: var(--text);
     }
 
-    /* Software i use section */
-    #sotware-i-use .tools {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 2rem;
-      align-items: stretch;
-    }
+  /* SOFTWARE SECTION PREMIUM */
 
-    #sotware-i-use .tool {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 1rem;
-      min-height: 220px;
-      padding: 1.25rem 1rem;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      perspective: 900px;
-      transition: var(--transition);
-    }
+.software-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px 30px;
+}
 
-    #sotware-i-use .tools img {
-      width: min(100%, 140px);
-      height: 140px;
-      object-fit: contain;
-      display: block;
-      transform-style: preserve-3d;
-      backface-visibility: hidden;
-      transform-origin: center;
-      transition: transform 0.45s ease, filter 0.45s ease, box-shadow 0.45s ease;
-    }
+.tool-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
 
-    #sotware-i-use .tool p {
-      font-size: 1rem;
-      font-weight: 600;
-      text-align: center;
-      line-height: 1.35;
-      color: var(--text);
-    }
+.software-scroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 10px;
+}
 
-    #sotware-i-use .tool:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0, 255, 191, 0.2);
-    }
+.software-scroll::-webkit-scrollbar {
+  display: none;
+}
 
-    #sotware-i-use .tool img:hover,
-    #sotware-i-use .tool:hover img,
-    #sotware-i-use .tool:active img {
-      transform: translateZ(28px) rotateX(14deg) rotateY(-14deg) scale(1.1);
-      
-    }
+/* CARD DESIGN */
+.tool-card {
+  min-width: 120px;
+  height: 120px;
+  background: rgba(20,20,20,0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ICON FIX (MOST IMPORTANT) */
+.tool-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+/* TEXT */
+.tool-card p {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* HOVER EFFECT 🔥 */
+.tool-card:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 0 20px rgba(0,255,255,0.6);
+}
+
+/* NAV BUTTONS */
+.nav-btn {
+  position: absolute;
+  background: rgba(30,30,30,0.8);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+}
+
+.nav-btn:hover {
+  background: rgba(0,255,255,0.2);
+}
+
+.nav-btn.left {
+  left: 5px;
+}
+
+.nav-btn.right {
+  right: 5px;
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 768px) {
+  .tool-card {
+    min-width: 90px;
+    height: 90px;
+  }
+
+  .tool-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .tool-card p {
+    font-size: 10px;
+  }
+}
+
 
     /* Contact Section */
     .contact-container {
