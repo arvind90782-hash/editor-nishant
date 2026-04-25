@@ -1503,12 +1503,261 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
   loadReviews({ showLoadingState: false });
 })();
 
-const scrollBox = document.getElementById("softwareScroll");
+(() => {
+  const scrollBox = document.getElementById('softwareScroll');
+  const prevButton = document.getElementById('softwareNavPrev');
+  const nextButton = document.getElementById('softwareNavNext');
+  const softwareCards = Array.from(scrollBox ? scrollBox.querySelectorAll('.software-card') : []);
 
-document.querySelector(".nav-btn.right").onclick = () => {
-  scrollBox.scrollBy({ left: 200, behavior: "smooth" });
-};
+  if (!scrollBox || !prevButton || !nextButton) {
+    return;
+  }
 
-document.querySelector(".nav-btn.left").onclick = () => {
-  scrollBox.scrollBy({ left: -200, behavior: "smooth" });
-};
+  function getScrollBehavior() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
+  function getCardStep() {
+    const firstCard = scrollBox.querySelector('.software-card');
+
+    if (!firstCard) {
+      return Math.max(scrollBox.clientWidth * 0.8, 180);
+    }
+
+    const styles = window.getComputedStyle(scrollBox);
+    const gap = parseFloat(styles.columnGap || styles.gap || '0');
+    const cardWidth = firstCard.getBoundingClientRect().width + gap;
+    const visibleCards = Math.max(1, Math.round(scrollBox.clientWidth / cardWidth));
+
+    return Math.max(cardWidth, cardWidth * Math.max(1, visibleCards - 1));
+  }
+
+  function updateNavState() {
+    const maxScrollLeft = Math.max(0, scrollBox.scrollWidth - scrollBox.clientWidth);
+    const atStart = scrollBox.scrollLeft <= 6;
+    const atEnd = scrollBox.scrollLeft >= maxScrollLeft - 6;
+
+    prevButton.disabled = atStart;
+    nextButton.disabled = atEnd;
+    prevButton.setAttribute('aria-disabled', String(atStart));
+    nextButton.setAttribute('aria-disabled', String(atEnd));
+  }
+
+  function scrollSoftware(direction) {
+    scrollBox.scrollBy({
+      left: getCardStep() * direction,
+      behavior: getScrollBehavior(),
+    });
+  }
+
+  prevButton.addEventListener('click', () => {
+    scrollSoftware(-1);
+  });
+
+  nextButton.addEventListener('click', () => {
+    scrollSoftware(1);
+  });
+
+  scrollBox.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      scrollSoftware(1);
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      scrollSoftware(-1);
+    }
+  });
+
+  let isDragging = false;
+  let activePointerId = null;
+  let dragStartX = 0;
+  let dragStartScrollLeft = 0;
+
+  function stopDragging(pointerId) {
+    if (!isDragging || (pointerId !== null && pointerId !== activePointerId)) {
+      return;
+    }
+
+    isDragging = false;
+    scrollBox.classList.remove('is-dragging');
+
+    if (activePointerId !== null && typeof scrollBox.releasePointerCapture === 'function') {
+      try {
+        scrollBox.releasePointerCapture(activePointerId);
+      } catch (error) {
+        /* Ignore release errors when the pointer is already gone. */
+      }
+    }
+
+    activePointerId = null;
+  }
+
+  scrollBox.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    isDragging = true;
+    activePointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragStartScrollLeft = scrollBox.scrollLeft;
+    scrollBox.classList.add('is-dragging');
+    softwareCards.forEach((card) => {
+      card.classList.remove('is-tilting');
+      card.style.removeProperty('--software-card-rotate-x');
+      card.style.removeProperty('--software-card-rotate-y');
+      card.style.removeProperty('--software-icon-rotate-x');
+      card.style.removeProperty('--software-icon-rotate-y');
+      card.style.removeProperty('--software-icon-shift-x');
+      card.style.removeProperty('--software-icon-shift-y');
+    });
+
+    if (typeof scrollBox.setPointerCapture === 'function') {
+      scrollBox.setPointerCapture(event.pointerId);
+    }
+  });
+
+  scrollBox.addEventListener('pointermove', (event) => {
+    if (!isDragging || event.pointerId !== activePointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - dragStartX;
+    scrollBox.scrollLeft = dragStartScrollLeft - deltaX;
+  });
+
+  scrollBox.addEventListener('pointerup', (event) => {
+    stopDragging(event.pointerId);
+  });
+
+  scrollBox.addEventListener('pointercancel', (event) => {
+    stopDragging(event.pointerId);
+  });
+
+  scrollBox.addEventListener('lostpointercapture', () => {
+    stopDragging(null);
+  });
+
+  scrollBox.addEventListener('dragstart', (event) => {
+    event.preventDefault();
+  });
+
+  let navUpdateFrame = 0;
+
+  function scheduleNavUpdate() {
+    if (navUpdateFrame) {
+      return;
+    }
+
+    navUpdateFrame = window.requestAnimationFrame(() => {
+      navUpdateFrame = 0;
+      updateNavState();
+    });
+  }
+
+  scrollBox.addEventListener('scroll', scheduleNavUpdate, { passive: true });
+  window.addEventListener('resize', updateNavState, { passive: true });
+
+  if ('ResizeObserver' in window) {
+    const resizeObserver = new ResizeObserver(() => {
+      updateNavState();
+    });
+
+    resizeObserver.observe(scrollBox);
+  }
+
+  const tiltMediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function tiltEnabled() {
+    return tiltMediaQuery.matches && !reducedMotionQuery.matches;
+  }
+
+  function resetCardTilt(card) {
+    card.classList.remove('is-tilting');
+    card.style.removeProperty('--software-card-rotate-x');
+    card.style.removeProperty('--software-card-rotate-y');
+    card.style.removeProperty('--software-icon-rotate-x');
+    card.style.removeProperty('--software-icon-rotate-y');
+    card.style.removeProperty('--software-icon-shift-x');
+    card.style.removeProperty('--software-icon-shift-y');
+  }
+
+  function enableCardTilt(card, event) {
+    if (!tiltEnabled() || scrollBox.classList.contains('is-dragging')) {
+      resetCardTilt(card);
+      return;
+    }
+
+    const bounds = card.getBoundingClientRect();
+    const offsetX = event.clientX - bounds.left;
+    const offsetY = event.clientY - bounds.top;
+    const ratioX = offsetX / bounds.width - 0.5;
+    const ratioY = offsetY / bounds.height - 0.5;
+    const rotateX = -ratioY * 10;
+    const rotateY = ratioX * 12;
+
+    card.classList.add('is-tilting');
+    card.style.setProperty('--software-card-rotate-x', `${rotateX.toFixed(2)}deg`);
+    card.style.setProperty('--software-card-rotate-y', `${rotateY.toFixed(2)}deg`);
+    card.style.setProperty('--software-icon-rotate-x', `${(rotateX * 1.45).toFixed(2)}deg`);
+    card.style.setProperty('--software-icon-rotate-y', `${(rotateY * 1.45).toFixed(2)}deg`);
+    card.style.setProperty('--software-icon-shift-x', `${(ratioX * 10).toFixed(2)}px`);
+    card.style.setProperty('--software-icon-shift-y', `${(ratioY * 8).toFixed(2)}px`);
+  }
+
+  softwareCards.forEach((card) => {
+    let frameId = 0;
+    let lastEvent = null;
+
+    function scheduleTilt(event) {
+      lastEvent = event;
+
+      if (frameId) {
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+
+        if (lastEvent) {
+          enableCardTilt(card, lastEvent);
+        }
+      });
+    }
+
+    card.addEventListener('mousemove', scheduleTilt);
+    card.addEventListener('mouseenter', scheduleTilt);
+    card.addEventListener('mouseleave', () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+
+      lastEvent = null;
+      resetCardTilt(card);
+    });
+  });
+
+  const handleTiltModeChange = () => {
+    if (!tiltEnabled()) {
+      softwareCards.forEach(resetCardTilt);
+    }
+  };
+
+  if (typeof tiltMediaQuery.addEventListener === 'function') {
+    tiltMediaQuery.addEventListener('change', handleTiltModeChange);
+  } else if (typeof tiltMediaQuery.addListener === 'function') {
+    tiltMediaQuery.addListener(handleTiltModeChange);
+  }
+
+  if (typeof reducedMotionQuery.addEventListener === 'function') {
+    reducedMotionQuery.addEventListener('change', handleTiltModeChange);
+  } else if (typeof reducedMotionQuery.addListener === 'function') {
+    reducedMotionQuery.addListener(handleTiltModeChange);
+  }
+
+  updateNavState();
+})();

@@ -153,62 +153,85 @@
   </section>
 
   <!-- Software i use -->
-  <div class="software-wrapper">
+  <section id="sotware-i-use" class="section software-section">
+    <div class="container">
+      <div class="software-section__header">
+        <h2 class="section-title">SOFTWARE I USE</h2>
+        <p class="software-section__subtitle">A focused toolkit for editing, motion, design, and development.</p>
+      </div>
 
-  <button class="nav-btn left">&#10094;</button>
+      <div class="software-carousel" aria-label="Software I use showcase">
+        <button
+          type="button"
+          class="software-nav-btn software-nav-btn--left"
+          id="softwareNavPrev"
+          aria-controls="softwareScroll"
+          aria-label="Scroll software list left"
+        >
+          <span aria-hidden="true">&#10094;</span>
+        </button>
 
-  <div class="software-scroll" id="softwareScroll">
+        <div class="software-carousel__viewport">
+          <div class="software-scroll" id="softwareScroll" role="list" tabindex="0" aria-label="Software I use">
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="Software/capcut.webp" alt="CapCut" loading="lazy" decoding="async" draggable="false">
+              <p>CapCut Pro</p>
+            </article>
 
-          <div class="tool">
-            <img class="capcut" src="Software/capcut.webp" alt="CapCut" loading="lazy" decoding="async">
-            <p>CapCut Pro</p>
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="https://cdn-icons-png.flaticon.com/512/5968/5968525.png" alt="Premiere Pro" loading="lazy" decoding="async" draggable="false">
+              <p>Adobe Premiere Pro</p>
+            </article>
+
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="https://cdn-icons-png.flaticon.com/512/5968/5968428.png" alt="After Effects" loading="lazy" decoding="async" draggable="false">
+              <p>Adobe After Effects</p>
+            </article>
+
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="https://cdn-icons-png.flaticon.com/512/5968/5968442.png" alt="Adobe Audition" loading="lazy" decoding="async" draggable="false">
+              <p>Adobe Audition</p>
+            </article>
+
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="https://cdn-icons-png.flaticon.com/512/5968/5968520.png" alt="Photoshop" loading="lazy" decoding="async" draggable="false">
+              <p>Adobe Photoshop</p>
+            </article>
+
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="Software/canva.webp" alt="Canva" loading="lazy" decoding="async" draggable="false">
+              <p>Canva</p>
+            </article>
+
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="https://code.visualstudio.com/assets/branding/code-stable.png" alt="Visual Studio Code" loading="lazy" decoding="async" draggable="false">
+              <p>Visual Studio Code</p>
+            </article>
+
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="https://cdn-icons-png.flaticon.com/128/1051/1051277.png" alt="HTML" loading="lazy" decoding="async" draggable="false">
+              <p>&lt;HTML&gt;</p>
+            </article>
+
+            <article class="software-card" role="listitem">
+              <img class="software-card__icon" src="https://cdn-icons-png.flaticon.com/128/3291/3291695.png" alt="GitHub" loading="lazy" decoding="async" draggable="false">
+              <p>GitHub</p>
+            </article>
           </div>
+        </div>
 
-          <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968525.png" alt="Premiere Pro" loading="lazy" decoding="async">
-            <p>Adobe Premiere Pro</p>
-          </div>
-
-          <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968428.png " alt="After Effects" loading="lazy" decoding="async">
-            <p>Adobe After Effects</p>
-          </div>
-
-          <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968442.png " alt="Adobe Audition" loading="lazy" decoding="async">
-            <p>Adobe Audition</p>
-          </div>
-
-          <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/512/5968/5968520.png" alt="Photoshop" loading="lazy" decoding="async">
-            <p>Adobe Photoshop</p>
-          </div>
-
-          <div class="tool">
-            <img src="Software/canva.webp" alt="Canva" loading="lazy" decoding="async">
-            <p>Canva</p>
-          </div>
-
-          <div class="tool">
-            <img src="https://code.visualstudio.com/assets/branding/code-stable.png" alt="Visual Studio Code" loading="lazy" decoding="async">
-            <p>Visual Studio Code</p>
-          </div>
-
-          <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/128/1051/1051277.png" alt="HTML" loading="lazy" decoding="async">
-            <p><HTML></HTML></p>
-          </div>
-
-          <div class="tool">
-            <img src="https://cdn-icons-png.flaticon.com/128/3291/3291695.png" alt="Github" loading="lazy" decoding="async">
-            <p>Github</p>
-          </div>
-
-           </div>
-
-  <button class="nav-btn right">&#10095;</button>
-
-</div>
+        <button
+          type="button"
+          class="software-nav-btn software-nav-btn--right"
+          id="softwareNavNext"
+          aria-controls="softwareScroll"
+          aria-label="Scroll software list right"
+        >
+          <span aria-hidden="true">&#10095;</span>
+        </button>
+      </div>
+    </div>
+  </section>
 
 
   <section id="contact" class="section">
