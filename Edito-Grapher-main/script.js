@@ -751,11 +751,12 @@ if (projectForm) {
 
 const shortVideos = document.querySelectorAll("#videos .video");
 const seeMoreBtn = document.querySelector(".see-more-btn");
-const upDownICon = document.querySelector(".fa-caret-down");
-const hideShow = document.querySelector(".hide-show");
+const upDownICon = seeMoreBtn ? seeMoreBtn.querySelector("i") : null;
+const hideShow = seeMoreBtn ? seeMoreBtn.querySelector(".hide-show") : null;
 
 let expanded = false;
 const mediaQuery = window.matchMedia("(max-width: 992px)");
+const mobileShortVideoLimit = 4;
 
 if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
   function applyToggleLogic() {
@@ -765,13 +766,24 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
         video.style.display = "block";
       });
       seeMoreBtn.style.display = "none";
+      seeMoreBtn.setAttribute("aria-expanded", "false");
       return;
     }
 
-    // Mobile/Tablet: show first 3 videos by default
+    if (shortVideos.length <= mobileShortVideoLimit) {
+      shortVideos.forEach((video) => {
+        video.style.display = "block";
+      });
+      seeMoreBtn.style.display = "none";
+      seeMoreBtn.setAttribute("aria-expanded", "false");
+      return;
+    }
+
+    // Mobile/Tablet: show first 4 videos by default
     seeMoreBtn.style.display = "flex";
+    seeMoreBtn.setAttribute("aria-expanded", "false");
     shortVideos.forEach((video, index) => {
-      video.style.display = index < 3 ? "block" : "none";
+      video.style.display = index < mobileShortVideoLimit ? "block" : "none";
     });
 
     expanded = false;
@@ -790,10 +802,11 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
     expanded = !expanded;
 
     shortVideos.forEach((video, index) => {
-      video.style.display = expanded || index < 3 ? "block" : "none";
+      video.style.display = expanded || index < mobileShortVideoLimit ? "block" : "none";
     });
 
     hideShow.textContent = expanded ? "See Less" : "See More";
+    seeMoreBtn.setAttribute("aria-expanded", String(expanded));
 
     if (expanded) {
       upDownICon.classList.replace("fa-caret-down", "fa-caret-up");
@@ -1757,6 +1770,175 @@ if (shortVideos.length && seeMoreBtn && upDownICon && hideShow) {
     reducedMotionQuery.addEventListener('change', handleTiltModeChange);
   } else if (typeof reducedMotionQuery.addListener === 'function') {
     reducedMotionQuery.addListener(handleTiltModeChange);
+  }
+
+  updateNavState();
+})();
+
+(() => {
+  const track = document.getElementById('fullVideosTrack');
+  const prevButton = document.getElementById('fullVideosPrev');
+  const nextButton = document.getElementById('fullVideosNext');
+  const cards = Array.from(track ? track.querySelectorAll('.full-video-card') : []);
+
+  if (!track || !prevButton || !nextButton) {
+    return;
+  }
+
+  function getScrollBehavior() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  }
+
+  function getStepSize() {
+    const firstCard = track.querySelector('.full-video-card');
+
+    if (!firstCard) {
+      return Math.max(track.clientWidth * 0.8, 220);
+    }
+
+    const styles = window.getComputedStyle(track);
+    const gap = parseFloat(styles.columnGap || styles.gap || '0');
+    return firstCard.getBoundingClientRect().width + gap;
+  }
+
+  function updateNavState() {
+    const maxScrollLeft = Math.max(0, track.scrollWidth - track.clientWidth);
+    const atStart = track.scrollLeft <= 6;
+    const atEnd = track.scrollLeft >= maxScrollLeft - 6;
+
+    prevButton.disabled = atStart;
+    nextButton.disabled = atEnd;
+    prevButton.setAttribute('aria-disabled', String(atStart));
+    nextButton.setAttribute('aria-disabled', String(atEnd));
+  }
+
+  function scrollTrack(direction) {
+    track.scrollBy({
+      left: getStepSize() * direction,
+      behavior: getScrollBehavior(),
+    });
+  }
+
+  prevButton.addEventListener('click', () => scrollTrack(-1));
+  nextButton.addEventListener('click', () => scrollTrack(1));
+
+  track.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      scrollTrack(1);
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      scrollTrack(-1);
+    }
+  });
+
+  let dragging = false;
+  let activePointerId = null;
+  let startX = 0;
+  let startScrollLeft = 0;
+
+  function stopDragging(pointerId) {
+    if (!dragging || (pointerId !== null && pointerId !== activePointerId)) {
+      return;
+    }
+
+    dragging = false;
+    track.classList.remove('is-dragging');
+
+    if (activePointerId !== null && typeof track.releasePointerCapture === 'function') {
+      try {
+        track.releasePointerCapture(activePointerId);
+      } catch (error) {
+        /* Ignore release errors when pointer capture is already gone. */
+      }
+    }
+
+    activePointerId = null;
+  }
+
+  track.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+
+    dragging = true;
+    activePointerId = event.pointerId;
+    startX = event.clientX;
+    startScrollLeft = track.scrollLeft;
+    track.classList.add('is-dragging');
+
+    if (typeof track.setPointerCapture === 'function') {
+      track.setPointerCapture(event.pointerId);
+    }
+  });
+
+  track.addEventListener('pointermove', (event) => {
+    if (!dragging || event.pointerId !== activePointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - startX;
+    track.scrollLeft = startScrollLeft - deltaX;
+  });
+
+  track.addEventListener('pointerup', (event) => stopDragging(event.pointerId));
+  track.addEventListener('pointercancel', (event) => stopDragging(event.pointerId));
+  track.addEventListener('lostpointercapture', () => stopDragging(null));
+  track.addEventListener('dragstart', (event) => event.preventDefault());
+
+  function openCardLightbox(card) {
+    if (typeof openLightbox !== 'function') {
+      return;
+    }
+
+    const items = Array.from(track.querySelectorAll('.full-video-card'));
+    const index = items.indexOf(card);
+
+    if (index >= 0) {
+      openLightbox(items, index);
+    }
+  }
+
+  cards.forEach((card) => {
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', 'Open full video');
+
+    card.addEventListener('click', (event) => {
+      if (track.classList.contains('is-dragging')) {
+        return;
+      }
+
+      event.preventDefault();
+      openCardLightbox(card);
+    });
+
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openCardLightbox(card);
+      }
+    });
+  });
+
+  let rafId = 0;
+  function scheduleStateUpdate() {
+    if (rafId) return;
+
+    rafId = window.requestAnimationFrame(() => {
+      rafId = 0;
+      updateNavState();
+    });
+  }
+
+  track.addEventListener('scroll', scheduleStateUpdate, { passive: true });
+  window.addEventListener('resize', updateNavState, { passive: true });
+
+  if ('ResizeObserver' in window) {
+    const resizeObserver = new ResizeObserver(() => updateNavState());
+    resizeObserver.observe(track);
   }
 
   updateNavState();
