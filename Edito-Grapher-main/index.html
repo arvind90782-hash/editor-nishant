@@ -18,7 +18,7 @@
         <ul class="nav-links" id="navLinks">
           <li><a href="about.html">About</a></li>
           <li class="dropdown">
-            <p>Services</p>
+            <p><span class="nav-tab-label">Services</span><span class="nav-tab-caret" aria-hidden="true">▼</span></p>
             <ul class="dropdown-menu">
               <li><a href="#videos">Short Videos</a></li>
               <li><a href="#full-videos">Full Videos</a></li>
@@ -70,7 +70,10 @@
         <div class="video" data-type="video" data-src="./Short videos/short 6.mp4">
           <video muted playsinline preload="metadata" poster="./Short videos/cover 6.png" src="./Short videos/short 6.mp4"></video>
         </div>
-
+        <div class="video" data-type="video" data-src="./Short videos/short 7.mp4">
+          <video muted playsinline preload="metadata" poster="./Short videos/cover 7.png" src="./Short videos/short 7.mp4"></video>
+        </div>
+       
       </div>
       <button type="button" class="see-more-btn" aria-expanded="false" aria-controls="featuredShortVideosGrid">
         <span class="hide-show">See More</span>
@@ -129,20 +132,44 @@
   <section id="websites" class="section">
     <div class="container">
       <h2 class="section-title">Web Development Projects</h2>
-      <div class="project-gallery">
+      <div class="project-gallery" id="websiteProjectsGallery">
         <a href="https://graphito.vercel.app/" target="_blank" rel="noopener noreferrer" class="project-card">
           <div class="project-card-image" style="background-image: url('Web Devlopment Project/Graphito 1.png');"></div>
           <h3>Graphito</h3>
           <p>Creative portfolio website with modern layout, interactive visuals, and responsive design for a personal brand.</p>
-          <span class="project-link">Open Website →</span>
+          <span class="project-link">Open Website &rarr;</span>
         </a>
         <a href="https://skillskahub.vercel.app/" target="_blank" rel="noopener noreferrer" class="project-card">
           <div class="project-card-image" style="background-image: url('Web Devlopment Project/Skillskahub.png');"></div>
           <h3>Skills Ka Hub</h3>
           <p>Clean education hub landing page built for learning communities, featuring polished UI and clear navigation.</p>
-          <span class="project-link">Open Website →</span>
+          <span class="project-link">Open Website &rarr;</span>
+        </a>
+        <a href="https://graphinex.in/" target="_blank" rel="noopener noreferrer" class="project-card">
+          <div class="project-card-image" style="background-image: url('Web Devlopment Project/Graphinex.png');"></div>
+          <h3>Graphinex</h3>
+          <p>Professional business website for Graphinex with a clean brand presentation, responsive sections, and smooth user flow.</p>
+          <span class="project-link">Open Website &rarr;</span>
+        </a>
+        <a href="https://growpio.vercel.app/" target="_blank" rel="noopener noreferrer" class="project-card">
+          <div class="project-card-image" style="background-image: url('Web Devlopment Project/Growpio.png');"></div>
+          <h3>Growpio</h3>
+          <p>Modern growth-focused web experience with crisp visuals, clear service messaging, and a polished responsive layout.</p>
+          <span class="project-link">Open Website &rarr;</span>
+        </a>
+       
+        <button type="button" class="see-more-btn website-projects-more-btn" id="websiteProjectsMoreBtn" aria-expanded="false" aria-controls="websiteProjectsGallery">
+        <span class="hide-show">See More</span>
+        <i class="fa-solid fa-caret-down" aria-hidden="true"></i>
+      </button>
+        <a href="https://rahul-mobile-shop.vercel.app/" target="_blank" rel="noopener noreferrer" class="project-card project-card--extra" data-project-extra>
+          <div class="project-card-image" style="background-image: url('Web Devlopment Project/Rahul mobile shop.png');"></div>
+          <h3>Rahul Mobile Shop</h3>
+          <p>Mobile shop website designed to present products and services neatly with fast browsing and customer-friendly navigation.</p>
+          <span class="project-link">Open Website &rarr;</span>
         </a>
       </div>
+      
     </div>
   </section>
 

@@ -666,6 +666,138 @@ if (document.readyState === 'loading') {
 
 window.addEventListener('load', checkScroll, { once: true });
 
+// Web project cards reveal one by one on scroll
+(function initProjectCardReveal() {
+  const gallery = document.querySelector('#websites .project-gallery');
+  const cards = Array.from(gallery ? gallery.querySelectorAll('.project-card') : []);
+  const extraCards = cards.filter((card) => card.hasAttribute('data-project-extra'));
+  const moreButton = document.getElementById('websiteProjectsMoreBtn');
+  const moreButtonLabel = moreButton ? moreButton.querySelector('.hide-show') : null;
+
+  if (!gallery || !cards.length) {
+    return;
+  }
+
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let projectsExpanded = false;
+
+  cards.forEach((card, index) => {
+    card.style.setProperty('--project-reveal-delay', `${Math.min(index * 110, 440)}ms`);
+  });
+
+  extraCards.forEach((card) => {
+    card.classList.add('is-project-hidden');
+    card.setAttribute('aria-hidden', 'true');
+  });
+
+  if (moreButton) {
+    moreButton.style.display = extraCards.length ? 'flex' : 'none';
+    moreButton.setAttribute('aria-expanded', 'false');
+  }
+
+  if (reducedMotionQuery.matches || !('IntersectionObserver' in window)) {
+    cards
+      .filter((card) => !card.classList.contains('is-project-hidden'))
+      .forEach((card) => card.classList.add('is-visible'));
+  } else {
+    gallery.classList.add('is-reveal-ready');
+
+    const observer = new IntersectionObserver(
+      (entries, activeObserver) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+
+          entry.target.classList.add('is-visible');
+          activeObserver.unobserve(entry.target);
+        });
+      },
+      {
+        threshold: 0.18,
+        rootMargin: '0px 0px -8% 0px',
+      }
+    );
+
+    cards
+      .filter((card) => !card.classList.contains('is-project-hidden'))
+      .forEach((card) => observer.observe(card));
+  }
+
+  if (!moreButton || !extraCards.length) {
+    return;
+  }
+
+  function setMoreButtonState(isExpanded) {
+    moreButton.setAttribute('aria-expanded', String(isExpanded));
+
+    if (moreButtonLabel) {
+      moreButtonLabel.textContent = isExpanded ? 'See Less' : 'See More';
+    }
+  }
+
+  function revealExtraProjects() {
+    extraCards.forEach((card, index) => {
+      card.classList.remove('is-project-hidden');
+      card.removeAttribute('aria-hidden');
+      card.style.setProperty('--project-reveal-delay', `${Math.min(index * 110, 220)}ms`);
+
+      if (reducedMotionQuery.matches) {
+        card.classList.add('is-visible', 'is-project-revealed');
+        return;
+      }
+
+      card.classList.add('is-project-entering');
+
+      requestAnimationFrame(() => {
+        card.classList.add('is-visible', 'is-project-revealed');
+        card.classList.remove('is-project-entering');
+      });
+    });
+  }
+
+  function hideExtraProjects() {
+    extraCards.forEach((card) => {
+      if (reducedMotionQuery.matches) {
+        card.classList.add('is-project-hidden');
+        card.classList.remove('is-project-revealed', 'is-visible');
+        card.setAttribute('aria-hidden', 'true');
+        return;
+      }
+
+      card.classList.remove('is-project-revealed', 'is-visible');
+      card.classList.add('is-project-entering');
+
+      window.setTimeout(() => {
+        if (!projectsExpanded) {
+          card.classList.add('is-project-hidden');
+          card.classList.remove('is-project-entering');
+          card.setAttribute('aria-hidden', 'true');
+        }
+      }, 520);
+    });
+
+    window.setTimeout(() => {
+      const section = document.getElementById('websites');
+
+      if (section) {
+        section.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'auto' : 'smooth', block: 'start' });
+      }
+    }, reducedMotionQuery.matches ? 0 : 160);
+  }
+
+  moreButton.addEventListener('click', () => {
+    projectsExpanded = !projectsExpanded;
+    setMoreButtonState(projectsExpanded);
+
+    if (projectsExpanded) {
+      revealExtraProjects();
+    } else {
+      hideExtraProjects();
+    }
+  });
+})();
+
 // Smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
@@ -750,7 +882,7 @@ if (projectForm) {
 
 
 const shortVideos = document.querySelectorAll("#videos .video");
-const seeMoreBtn = document.querySelector(".see-more-btn");
+const seeMoreBtn = document.querySelector("#videos .see-more-btn");
 const upDownICon = seeMoreBtn ? seeMoreBtn.querySelector("i") : null;
 const hideShow = seeMoreBtn ? seeMoreBtn.querySelector(".hide-show") : null;
 
